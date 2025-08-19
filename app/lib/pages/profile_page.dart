@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stopfires/widgets/debug_info.dart';
 
 class ProfilePage extends ConsumerWidget {
-  ProfilePage({super.key});
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

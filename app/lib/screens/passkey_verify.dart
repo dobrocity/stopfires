@@ -8,10 +8,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 class PasskeyVerifyScreen extends HookWidget
     implements CorbadoScreen<PasskeyVerifyBlock> {
+  @override
   final PasskeyVerifyBlock block;
 
-  PasskeyVerifyScreen(this.block);
+  const PasskeyVerifyScreen(this.block, {super.key});
 
+  @override
   Widget build(BuildContext context) {
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -20,6 +22,7 @@ class PasskeyVerifyScreen extends HookWidget
           showNotificationError(context, maybeError.translatedError);
         }
       });
+      return null;
     }, [block.error]);
 
     return Column(

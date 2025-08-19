@@ -7,10 +7,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 class PasskeyAppendScreen extends HookWidget
     implements CorbadoScreen<PasskeyAppendBlock> {
+  @override
   final PasskeyAppendBlock block;
 
-  PasskeyAppendScreen(this.block);
+  const PasskeyAppendScreen(this.block, {super.key});
 
+  @override
   Widget build(BuildContext context) {
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -19,6 +21,7 @@ class PasskeyAppendScreen extends HookWidget
           showNotificationError(context, maybeError.detailedError());
         }
       });
+      return null;
     }, [block.error]);
 
     return Column(

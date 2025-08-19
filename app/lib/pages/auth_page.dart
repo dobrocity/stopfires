@@ -11,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../widgets/debug_info.dart';
 
 class AuthPage extends HookConsumerWidget {
-  AuthPage({super.key}) {}
+  const AuthPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -7,10 +7,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 class EmailVerifyOtpScreen extends HookWidget
     implements CorbadoScreen<EmailVerifyBlock> {
+  @override
   final EmailVerifyBlock block;
 
-  EmailVerifyOtpScreen(this.block);
+  const EmailVerifyOtpScreen(this.block, {super.key});
 
+  @override
   Widget build(BuildContext context) {
     final otpController = useTextEditingController();
 
@@ -21,6 +23,7 @@ class EmailVerifyOtpScreen extends HookWidget
           showNotificationError(context, maybeError.translatedError);
         }
       });
+      return null;
     }, [block.error]);
 
     return Column(

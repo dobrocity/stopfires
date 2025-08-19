@@ -6,10 +6,10 @@ class PasskeyCard extends StatelessWidget {
   final void Function(String) onDelete;
 
   const PasskeyCard({
-    Key? key,
+    super.key,
     required this.passkey,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   // Helper method to display a bottom sheet with options.
   void _showOptions(BuildContext context) {

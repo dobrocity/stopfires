@@ -12,7 +12,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stopfires/widgets/debug_info.dart';
 
 class PasskeyListPage extends HookConsumerWidget {
-  PasskeyListPage({super.key});
+  const PasskeyListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

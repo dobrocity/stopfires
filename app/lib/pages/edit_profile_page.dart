@@ -12,7 +12,7 @@ import 'package:overlay_support/overlay_support.dart';
 import '../widgets/debug_info.dart';
 
 class EditProfilePage extends HookConsumerWidget {
-  EditProfilePage({super.key});
+  const EditProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

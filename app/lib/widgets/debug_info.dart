@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../auth_provider.dart';
 
 class DebugInfo extends HookConsumerWidget {
+  const DebugInfo({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final corbadoAuth = ref.watch(corbadoProvider);
