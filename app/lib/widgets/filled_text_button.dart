@@ -6,13 +6,12 @@ class FilledTextButton extends StatelessWidget {
   final bool disabled;
   final bool isLoading;
 
-  const FilledTextButton({
-    super.key,
-    required this.content,
-    required this.onTap,
-    this.disabled = false,
-    this.isLoading = false,
-  });
+  const FilledTextButton(
+      {super.key,
+      required this.content,
+      required this.onTap,
+      this.disabled = false,
+      this.isLoading = false});
 
   void onPressed() {
     if (isLoading) {
@@ -29,13 +28,12 @@ class FilledTextButton extends StatelessWidget {
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        disabledBackgroundColor: Colors.grey.withAlpha(64),
-        padding: const EdgeInsets.all(15),
-      ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          disabledBackgroundColor: Colors.grey.withOpacity(0.25),
+          padding: const EdgeInsets.all(15)),
       onPressed: disabled ? null : onPressed,
       child: isLoading
           ? SizedBox(
@@ -43,8 +41,7 @@ class FilledTextButton extends StatelessWidget {
               width: progressIndicatorSize,
               child: CircularProgressIndicator(
                 color: Theme.of(context).colorScheme.onPrimary,
-              ),
-            )
+              ))
           : Text(content),
     );
   }

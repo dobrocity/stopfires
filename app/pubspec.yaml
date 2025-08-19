@@ -51,6 +51,7 @@ dependencies:
   passkeys_ios: ^2.7.0
   firebase_core: any
   passkeys: any
+  corbado_telemetry_api_client: ^1.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

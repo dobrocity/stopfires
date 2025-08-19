@@ -1,91 +1,83 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
+import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
-import 'package:stopfires/corbado/corbado_auth_firebase.dart';
-import 'package:stopfires/firebase_options.dart';
 import 'package:stopfires/pages/loading_page.dart';
 import 'package:stopfires/router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:corbado_telemetry_api_client/corbado_telemetry_api_client.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:overlay_support/overlay_support.dart';
 
-final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+import 'config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  if (kDebugMode) {
-    try {
-      await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-      functions.useFunctionsEmulator('localhost', 5001);
-    } catch (e) {
-      // ignore: avoid_print
-      print(e);
-    }
-  }
-
+  // This is a nice pattern if you need to initialize some of your services
+  // before the app starts.
+  // As we are using riverpod this initialization happens inside providers.
+  // First we show a loading page.
   runApp(const LoadingPage());
 
   // Now we do the initialization.
-  final corbadoAuth = CorbadoAuthFirebase();
-  await corbadoAuth.init('europe-west1');
+  final projectId = getProjectID();
+
+  final corbadoAuth = CorbadoAuth();
+  await corbadoAuth.init(
+    projectId: projectId,
+    telemetryDisabled: CORBADO_TELEMETRY_DISABLED,
+  );
+
+  if (!CORBADO_TELEMETRY_DISABLED) {
+    // Telemetry is used to help us understand how the example is used.
+    unawaited(
+      CorbadoTelemetryApiClient(projectId: projectId).sendEvent(
+        type: TelemetryEventType.EXAMPLE_APPLICATION_OPENED,
+        payload: {'exampleName': 'corbado/examples/dart-flutter'},
+      ),
+    );
+  }
 
   // Finally we override the providers that needed initialization.
   // Now the real app can be loaded.
   runApp(
     ProviderScope(
-      overrides: [corbadoAuthProvider.overrideWithValue(corbadoAuth)],
-      child: MyApp(),
+      overrides: [corbadoProvider.overrideWithValue(corbadoAuth)],
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp.router(
-      title: 'StopFires',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    final router = ref.watch(routerProvider);
+
+    return OverlaySupport.global(
+      child: MaterialApp.router(
+        routeInformationParser: router.routeInformationParser,
+        routerDelegate: router.routerDelegate,
+        routeInformationProvider: router.routeInformationProvider,
+        theme: ThemeData(
+          useMaterial3: false,
+          colorScheme: const ColorScheme(
+            brightness: Brightness.light,
+            primary: Color(0xFF1953ff),
+            onPrimary: Colors.white,
+            secondary: Colors.white,
+            onSecondary: Color(0xFF1953ff),
+            error: Colors.redAccent,
+            onError: Colors.white,
+            background: Color(0xFF1953ff),
+            onBackground: Colors.white,
+            surface: Color(0xFF1953ff),
+            onSurface: Color(0xFF1953ff),
+          ),
+        ),
       ),
-      routerConfig: ref.watch(routerProvider),
-      builder: (context, child) {
-        return KeyboardHandler(child: child!);
-      },
     );
-  }
-}
-
-class KeyboardHandler extends StatefulWidget {
-  final Widget child;
-
-  const KeyboardHandler({super.key, required this.child});
-
-  @override
-  State<KeyboardHandler> createState() => _KeyboardHandlerState();
-}
-
-class _KeyboardHandlerState extends State<KeyboardHandler> {
-  @override
-  void initState() {
-    super.initState();
-
-    // Add a global keyboard listener to handle potential state issues
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // This helps prevent keyboard state inconsistencies
-        SystemChannels.textInput.invokeMethod('TextInput.clearClient');
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

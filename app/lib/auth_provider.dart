@@ -1,39 +1,32 @@
+import 'package:corbado_auth/corbado_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 // Corbado SDK provider. This will be used by other providers to
 // e.g. expose user state.
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stopfires/auth_service.dart';
-import 'package:stopfires/corbado/corbado_auth_firebase.dart';
 
-final corbadoAuthProvider = Provider<CorbadoAuthFirebase>(
-  (ref) => throw UnimplementedError("no instance of corbadoAuth"),
-);
-
-// Make the authentication service available throughout the app.
-final authServiceProvider = Provider<AuthService>((ref) {
-  final corbadoAuth = ref.watch(corbadoAuthProvider);
-  final firebaseAuth = ref.watch(firebaseAuthProvider);
-  final user = ref.watch(userProvider);
-
-  return AuthService(corbadoAuth, firebaseAuth, user.value);
-});
-
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
-  return FirebaseAuth.instance;
-});
+final corbadoProvider = Provider<CorbadoAuth>(
+    (ref) => throw UnimplementedError("no instance of corbadoAuth"));
 
 // Make the user available throughout the app.
 final userProvider = StreamProvider<User?>((ref) async* {
-  final firebaseAuth = ref.watch(firebaseAuthProvider);
-  await for (final value in firebaseAuth.userChanges()) {
+  final corbado = ref.watch(corbadoProvider);
+  await for (final value in corbado.userChanges) {
     yield value;
   }
 });
 
 // Make the auth state available throughout the app.
 final authStateProvider = StreamProvider((ref) async* {
-  final firebaseAuth = ref.watch(firebaseAuthProvider);
-  await for (final value in firebaseAuth.authStateChanges()) {
+  final corbado = ref.watch(corbadoProvider);
+  await for (final value in corbado.authStateChanges) {
+    yield value;
+  }
+});
+
+// Make the passkeys available throughout the app.
+final passkeysProvider = StreamProvider<List<PasskeyInfo>>((ref) async* {
+  final corbado = ref.watch(corbadoProvider);
+  await for (final value in corbado.passkeysChanges) {
     yield value;
   }
 });

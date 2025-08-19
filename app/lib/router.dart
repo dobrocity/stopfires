@@ -1,21 +1,18 @@
+import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
-import 'package:stopfires/pages/email_otp_page.dart';
-import 'package:stopfires/pages/loading_page.dart';
+import 'package:stopfires/pages/auth_page.dart';
+import 'package:stopfires/pages/edit_profile_page.dart';
+import 'package:stopfires/pages/passkey_list_page.dart';
 import 'package:stopfires/pages/profile_page.dart';
-import 'package:stopfires/pages/sign_in_page.dart';
-import 'package:stopfires/pages/sign_up_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class Routes {
-  static const signUp = '/sign-up';
-  static const signIn = '/sign-in';
-  static const emailOtp = '/email-otp/:email';
+  static const auth = '/auth';
   static const profile = '/profile';
-  static const loading = '/loading';
-
-  static String buildEmailOtp(String email) => '/email-otp/$email';
+  static const editProfile = '/edit-profile';
+  static const passkeyList = '/passkey-list';
 }
 
 GoRoute _defaultTransitionGoRoute({
@@ -49,58 +46,47 @@ Page<dynamic> _customPageBuilder(
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
+
   return GoRouter(
-    initialLocation: Routes.signIn,
+    initialLocation: Routes.auth,
     routes: [
       _defaultTransitionGoRoute(
-        path: Routes.signUp,
-        builder: (context, state) => SignUpPage(),
-      ),
-      _defaultTransitionGoRoute(
-        path: Routes.signIn,
-        builder: (context, state) => SignInPage(),
+        path: Routes.auth,
+        builder: (context, state) => AuthPage(),
       ),
       _defaultTransitionGoRoute(
         path: Routes.profile,
-        builder: (context, state) => const ProfilePage(),
+        builder: (context, state) => ProfilePage(),
       ),
       _defaultTransitionGoRoute(
-        path: Routes.loading,
-        builder: (context, state) => const LoadingPage(),
+        path: Routes.editProfile,
+        builder: (context, state) => EditProfilePage(),
       ),
-      GoRoute(
-        path: Routes.emailOtp,
-        pageBuilder: (context, state) {
-          final email = state.pathParameters['email'];
-          if (email == null) {
-            throw Exception();
-          }
-
-          return _customPageBuilder(
-            (context, state) => EmailOTPPage(email: email),
-            context,
-            state,
-          );
-        },
+      _defaultTransitionGoRoute(
+        path: Routes.passkeyList,
+        builder: (context, state) => PasskeyListPage(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {
-      final onLoggedOutRoutes = [
-        Routes.signIn,
-        Routes.signUp,
-        Routes.emailOtp,
-      ].contains(state.fullPath);
+      final onLoggedOutRoutes = [Routes.auth].contains(state.fullPath);
 
-      if (authState.isLoading) {
-        return Routes.loading;
+      if (authState.value == null) {
+        return null;
       }
 
-      if (authState.value == null && !onLoggedOutRoutes) {
-        return Routes.signIn;
-      }
-
-      if (authState.value != null && onLoggedOutRoutes) {
-        return Routes.profile;
+      switch (authState.value!) {
+        case AuthState.None:
+          // if the user is not logged in but currently on a page that should
+          // only be visible for logged in users => redirect to signIn page.
+          if (!onLoggedOutRoutes) {
+            return Routes.auth;
+          }
+        case AuthState.SignedIn:
+          // if the user is logged in but currently on a page that should
+          // only be visible for logged out users => redirect to profile page.
+          if (onLoggedOutRoutes) {
+            return Routes.profile;
+          }
       }
 
       return null;
