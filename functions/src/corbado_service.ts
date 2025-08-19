@@ -1,11 +1,5 @@
 import { UsersApi } from './frontendapi';
-import {
-  Configuration,
-  FullUser,
-  PasskeysBiometricsApi,
-  UserApi,
-  WebAuthnCredentialItemRsp,
-} from './backendapi';
+import { Configuration } from './backendapi';
 import axios, { AxiosError } from 'axios';
 import { CorbadoError } from './exceptions';
 import { RequestMetadata } from './types';

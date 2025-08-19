@@ -1,5 +1,4 @@
 import type { AxiosError } from 'axios';
-import { ErrorRsp } from './frontendapi';
 import * as logger from 'firebase-functions/logger';
 
 export class CorbadoError extends Error {
@@ -21,7 +20,7 @@ export class CorbadoError extends Error {
     logger.info('Axios error', error.response);
     if (error.response.status >= 500 || error.response.status === 422) {
       try {
-        const errorRespRaw = error.response.data as ErrorRsp;
+        const errorRespRaw = error.response.data as any;
         const message = errorRespRaw.error.details ?? error.message;
         return NonRecoverableError.server(
           message,
