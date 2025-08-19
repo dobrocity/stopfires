@@ -3,7 +3,6 @@ import 'package:stopfires/auth_provider.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -22,19 +21,6 @@ class EditProfilePage extends HookConsumerWidget {
     final fullName = useTextEditingController(text: user.value!.username);
 
     final email = useTextEditingController(text: user.value!.email);
-
-    // This is only an example for demonstrations purposes
-    Future<void> makeRequest() async {
-      final url = Uri.parse('https://www.corbado.com');
-
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${user.value!.idToken}',
-          'Content-Type': 'application/json',
-        },
-      );
-    }
 
     final isLoading = useState<bool>(false);
     final error = useState<String?>(null);
