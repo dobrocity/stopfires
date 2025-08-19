@@ -6,6 +6,8 @@
 	<array>
 		<string>webcredentials:corbado.stopfires.org</string>
 		<string>applinks:corbado.stopfires.org</string>
+		<string>webcredentials:stopfires.org</string>
+		<string>applinks:stopfires.org</string>
 	</array>
 </dict>
 </plist>
