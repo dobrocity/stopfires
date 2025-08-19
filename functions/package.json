@@ -12,7 +12,7 @@
     "generate:api": "npx @openapitools/openapi-generator-cli generate -i ./openapi/frontendapi.yaml -g typescript-axios -o ./src/frontendapi && npx @openapitools/openapi-generator-cli generate -i ./openapi/backendapi.yaml -g typescript-axios -o ./src/backendapi"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "main": "lib/index.js",
   "dependencies": {
