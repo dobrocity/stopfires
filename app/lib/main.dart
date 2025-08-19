@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/firebase_options.dart';
 import 'package:stopfires/pages/loading_page.dart';
 import 'package:stopfires/router.dart';
 import 'package:corbado_telemetry_api_client/corbado_telemetry_api_client.dart';
@@ -13,6 +15,7 @@ import 'config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // This is a nice pattern if you need to initialize some of your services
   // before the app starts.

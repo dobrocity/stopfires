@@ -18,9 +18,11 @@ class EditProfilePage extends HookConsumerWidget {
     final user = ref.watch(userProvider);
     final corbado = ref.watch(corbadoProvider);
 
-    final fullName = useTextEditingController(text: user.value!.username);
+    final fullName = useTextEditingController(
+      text: user.value!.corbado.username,
+    );
 
-    final email = useTextEditingController(text: user.value!.email);
+    final email = useTextEditingController(text: user.value!.corbado.email);
 
     final isLoading = useState<bool>(false);
     final error = useState<String?>(null);
