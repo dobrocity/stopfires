@@ -1,5 +1,15 @@
-import { UsersApi } from './frontendapi';
-import { Configuration } from './backendapi';
+import {
+  UsersApi,
+  Passkey,
+  MeRsp,
+  AuthApi,
+  ProcessResponse,
+} from './frontendapi';
+import {
+  Configuration,
+  PasskeyAppendStartRsp,
+  PasskeysApi,
+} from './backendapi';
 import axios, { AxiosError } from 'axios';
 import { CorbadoError } from './exceptions';
 import { RequestMetadata } from './types';
@@ -15,8 +25,9 @@ export type User = {
 
 export class CorbadoService {
   #usersApi: UsersApi;
-  #userApi: UserApi;
-  #passkeyApi: PasskeysBiometricsApi;
+  #userApi: UsersApi;
+  #passkeyApi: PasskeysApi;
+  #authApi: AuthApi;
 
   constructor(basePath: string, projectId: string, apiSecret: string) {
     const axiosInstance = axios.create({
@@ -36,13 +47,14 @@ export class CorbadoService {
     );
 
     this.#usersApi = new UsersApi(undefined, basePath, axiosInstance);
+    this.#authApi = new AuthApi(undefined, basePath, axiosInstance);
 
     const backendApiConfig = new Configuration({
       username: projectId,
       password: apiSecret,
     });
-    this.#userApi = new UserApi(backendApiConfig, BASE_PATH, axiosInstance);
-    this.#passkeyApi = new PasskeysBiometricsApi(
+    this.#userApi = new UsersApi(backendApiConfig, BASE_PATH, axiosInstance);
+    this.#passkeyApi = new PasskeysApi(
       backendApiConfig,
       BASE_PATH,
       axiosInstance
@@ -52,14 +64,17 @@ export class CorbadoService {
   async startSignUpWithPasskey(
     email: string,
     metadata: RequestMetadata
-  ): Promise<string> {
+  ): Promise<ProcessResponse> {
     try {
-      const res = await this.#usersApi.passKeyRegisterStart(
-        { username: email, fullName: email },
+      const res = await this.#authApi.signupInit(
+        {
+          fullName: email,
+          identifiers: [{ type: 'email', identifier: email }],
+        },
         metadata.toRawAxiosRequestConfig()
       );
 
-      return res.data.data.challenge;
+      return res.data;
     } catch (e) {
       console.log(e);
       throw e;
@@ -69,151 +84,153 @@ export class CorbadoService {
   async finishSignUpWithPasskey(
     signedChallenge: string,
     metadata: RequestMetadata
-  ): Promise<User> {
-    const res = await this.#usersApi.passKeyRegisterFinish(
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.passkeyAppendFinish(
       { signedChallenge: signedChallenge },
       metadata.toRawAxiosRequestConfig()
     );
-    const shortSession = res.data.data.shortSession;
-    const splits = shortSession!.value.split('.');
 
-    return JSON.parse(atob(splits[1]));
+    return res.data;
   }
 
   async startPasskeyAppend(
     username: string,
     fullname: string,
     metadata: RequestMetadata
-  ) {
-    const res = await this.#passkeyApi.webAuthnRegisterStart({
-      clientInfo: metadata.toClientInfo(),
-      username: username,
-      userFullName: fullname,
-      credentialStatus: 'active',
-    });
+  ): Promise<PasskeyAppendStartRsp> {
+    const res = await this.#passkeyApi.passkeyAppendStart(
+      {
+        userID: '',
+        processID: '',
+        username: username,
+        clientInformation: {
+          remoteAddress: metadata.remoteAddress,
+          userAgent: metadata.userAgent,
+          userVerifyingPlatformAuthenticatorAvailable: false,
+          conditionalMediationAvailable: false,
+          parsedDeviceInfo: {
+            browserName: '',
+            browserVersion: '',
+            osName: '',
+            osVersion: '',
+          },
+        },
+        passkeyIntelFlags: {
+          forcePasskeyAppend: false,
+        },
+      },
+      metadata.toRawAxiosRequestConfig()
+    );
 
-    return res.data.publicKeyCredentialCreationOptions;
+    return res.data;
   }
 
   async finishPasskeyAppend(
     signedChallenge: string,
     metadata: RequestMetadata
-  ): Promise<string> {
-    const res = await this.#passkeyApi.webAuthnRegisterFinish({
-      publicKeyCredential: signedChallenge,
-      clientInfo: metadata.toClientInfo(),
-    });
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.passkeyAppendFinish(
+      { signedChallenge: signedChallenge },
+      metadata.toRawAxiosRequestConfig()
+    );
 
-    return res.data.userID;
+    return res.data;
   }
 
   async startLoginWithPasskey(
     email: string,
     metadata: RequestMetadata
-  ): Promise<string> {
-    let challenge;
-    if (email.length === 0) {
-      const res = await this.#usersApi.passKeyMediationStart(
-        {},
-        metadata.toRawAxiosRequestConfig()
-      );
-      challenge = res.data.data.challenge;
-    } else {
-      const res = await this.#usersApi.passKeyLoginStart(
-        { username: email },
-        metadata.toRawAxiosRequestConfig()
-      );
-      challenge = res.data.data.challenge;
-    }
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.loginInit(
+      {
+        identifierValue: email,
+        isPhone: false,
+      },
+      metadata.toRawAxiosRequestConfig()
+    );
 
-    if (challenge.length === 0) {
-      throw CorbadoError.noPasskeyAvailable();
-    }
-
-    return challenge;
+    return res.data;
   }
 
   async finishLoginWithPasskey(
     signedChallenge: string,
     metadata: RequestMetadata
-  ): Promise<User> {
-    const res = await this.#usersApi.passKeyLoginFinish(
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.passkeyLoginFinish(
       { signedChallenge: signedChallenge },
       metadata.toRawAxiosRequestConfig()
     );
-    const shortSession = res.data.data.shortSession;
-    const splits = shortSession!.value.split('.');
 
-    return JSON.parse(atob(splits[1]));
+    return res.data;
   }
 
   async startLoginWithEmailOTP(
     email: string,
     metadata: RequestMetadata
-  ): Promise<string> {
-    const res = await this.#usersApi.emailCodeLoginStart(
-      { username: email },
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.identifierVerifyStart(
+      {
+        identifierType: 'email',
+        verificationType: 'email-otp',
+      },
       metadata.toRawAxiosRequestConfig()
     );
 
-    return res.data.data.emailCodeID;
+    return res.data;
   }
 
   async finishLoginWithEmailOTP(
-    emailCodeID: string,
     code: string,
     metadata: RequestMetadata
-  ): Promise<User> {
-    const res = await this.#usersApi.emailCodeConfirm(
-      { emailCodeID: emailCodeID, code: code },
+  ): Promise<ProcessResponse> {
+    const res = await this.#authApi.identifierVerifyFinish(
+      {
+        code: code,
+        identifierType: 'email',
+        verificationType: 'email-otp',
+        isNewDevice: false,
+      },
       metadata.toRawAxiosRequestConfig()
     );
-    const shortSession = res.data.data.shortSession;
-    const splits = shortSession!.value.split('.');
 
-    return JSON.parse(atob(splits[1]));
+    return res.data;
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    await this.#userApi.userDelete(userId, {});
+  async deleteUser(metadata: RequestMetadata): Promise<void> {
+    await this.#userApi.currentUserDelete(metadata.toRawAxiosRequestConfig());
   }
 
-  async getFullUser(
-    userId: string,
+  async getFullUser(metadata: RequestMetadata): Promise<MeRsp> {
+    const res = await this.#userApi.currentUserGet(
+      metadata.toRawAxiosRequestConfig()
+    );
+    return res.data;
+  }
+
+  async getPasskeys(metadata: RequestMetadata): Promise<Array<Passkey>> {
+    const res = await this.#userApi.currentUserPasskeyGet(
+      metadata.toRawAxiosRequestConfig()
+    );
+    return res.data.passkeys;
+  }
+
+  async deletePasskey(
+    passkeyId: string,
     metadata: RequestMetadata
-  ): Promise<FullUser> {
-    const res = await this.#userApi.userGet(
-      userId,
-      metadata.remoteAddress,
-      metadata.userAgent
+  ): Promise<void> {
+    await this.#userApi.currentUserPasskeyDelete(
+      passkeyId,
+      metadata.toRawAxiosRequestConfig()
     );
-    return res.data.data;
-  }
-
-  async getPasskeys(userId: string): Promise<Array<WebAuthnCredentialItemRsp>> {
-    const res = await this.#passkeyApi.webAuthnCredentialList(
-      undefined,
-      undefined,
-      undefined,
-      [`userID:eq:${userId}`]
-    );
-    return res.data.rows;
-  }
-
-  async deletePasskey(userId: string, passkeyId: string): Promise<void> {
-    await this.#passkeyApi.webAuthnCredentialDelete(userId, passkeyId, {});
   }
 
   async updateUserWithFullName(
-    uid: string,
     fullName: string,
     metadata: RequestMetadata
-  ) {
-    await this.#userApi.userUpdate(
-      uid,
+  ): Promise<void> {
+    await this.#userApi.currentUserUpdate(
       { fullName: fullName },
       metadata.toRawAxiosRequestConfig()
     );
-    return;
   }
 }

@@ -153,18 +153,20 @@ export const finishSignUpWithPasskey = onCall(
         params.signedChallenge,
         metadata
       );
-      // remove the "usr-" prefix from the corbadoUserId
-      const corbadoUserId = corbadoUser.sub.substring(4);
-      await auth.createUser({
-        uid: corbadoUserId,
-        email: corbadoUser.orig,
-      });
 
-      await auth.setCustomUserClaims(corbadoUserId, {
-        corbadoUserId: corbadoUser.sub,
-      });
+      return true;
+      // // remove the "usr-" prefix from the corbadoUserId
+      // const corbadoUserId = corbadoUser.sub.substring(4);
+      // await auth.createUser({
+      //   uid: corbadoUserId,
+      //   email: corbadoUser.orig,
+      // });
 
-      return await auth.createCustomToken(corbadoUserId);
+      // await auth.setCustomUserClaims(corbadoUserId, {
+      //   corbadoUserId: corbadoUser.sub,
+      // });
+
+      // return await auth.createCustomToken(corbadoUserId);
     } catch (e) {
       throw handleUnknownError(e);
     }
@@ -209,9 +211,9 @@ export const finishLoginWithPasskey = onCall(
         params.signedChallenge,
         metadata
       );
-      const firebaseUid = await getFirebaseUid(corbadoUser);
+      // const firebaseUid = await getFirebaseUid(corbadoUser);
 
-      return await auth.createCustomToken(firebaseUid);
+      return true; // await auth.createCustomToken(firebaseUid);
     } catch (e) {
       throw handleUnknownError(e);
     }
@@ -247,13 +249,12 @@ export const finishLoginWithEmailOTP = onCall(
       const params = callableRequest.data as EmailOTPLoginFinish;
       const metadata = parseRequestMetadata(callableRequest);
       const corbadoUser = await corbadoService.finishLoginWithEmailOTP(
-        params.emailCodeID,
         params.code,
         metadata
       );
-      const firebaseUid = await getFirebaseUid(corbadoUser);
+      // const firebaseUid = await getFirebaseUid(corbadoUser);
 
-      return await auth.createCustomToken(firebaseUid);
+      return true; // await auth.createCustomToken(firebaseUid);
     } catch (e) {
       if (e instanceof InvalidOtpInputError) {
         throw new HttpsError('unknown', ErrorCodes.INVALID_OTP_CODE);
@@ -284,9 +285,6 @@ export const startPasskeyAppend = onCall(
         verifiedToken.email,
         metadata
       );
-      if (res == '') {
-        throw new PasskeyAlreadyExists();
-      }
 
       return res;
     } catch (e) {
@@ -342,10 +340,8 @@ export const deletePasskey = onCall(
   async (callableRequest: CallableRequest) => {
     const params = callableRequest.data as PasskeyDelete;
     try {
-      const corbadoUserId = await verifyIdTokenAndGetCorbadoUserId(
-        params.firebaseToken
-      );
-      await corbadoService.deletePasskey(corbadoUserId, params.passkeyId);
+      const metadata = parseRequestMetadata(callableRequest);
+      await corbadoService.deletePasskey(params.passkeyId, metadata);
       return;
     } catch (e) {
       throw handleUnknownError(e);

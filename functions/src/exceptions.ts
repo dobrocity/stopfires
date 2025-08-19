@@ -1,5 +1,6 @@
 import type { AxiosError } from 'axios';
 import * as logger from 'firebase-functions/logger';
+import { ErrorRsp } from './common';
 
 export class CorbadoError extends Error {
   recoverable: boolean;
@@ -20,7 +21,7 @@ export class CorbadoError extends Error {
     logger.info('Axios error', error.response);
     if (error.response.status >= 500 || error.response.status === 422) {
       try {
-        const errorRespRaw = error.response.data as any;
+        const errorRespRaw = error.response.data as ErrorRsp;
         const message = errorRespRaw.error.details ?? error.message;
         return NonRecoverableError.server(
           message,
