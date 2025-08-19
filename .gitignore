@@ -12,4 +12,6 @@ pubsub-debug.log
 .firebase
 .firebase-cache
 
-service-account.json
+**/service-account.json
+**/firebase_options.dart
+**/google-services.json
