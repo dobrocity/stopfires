@@ -125,6 +125,10 @@ export const startSignUpWithPasskey = onCall(
     try {
       const params = callableRequest.data as PasskeyRegisterStart;
       const metadata = parseRequestMetadata(callableRequest);
+
+      // Initialize auth process first
+      await corbadoService.initAuthProcess(metadata);
+
       return await corbadoService.startSignUpWithPasskey(
         params.username,
         metadata
