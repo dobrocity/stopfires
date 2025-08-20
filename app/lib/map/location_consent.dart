@@ -255,7 +255,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: widget.onDecline,
+                    onPressed: widget.onDecline ?? () => context.pop(),
                     child: Text(context.l10n.decline),
                   ),
                 ),
