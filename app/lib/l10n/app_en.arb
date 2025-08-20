@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "hello": "Hello",
+  "@hello": {},
+  "welcome": "Welcome",
+  "@welcome": {},
+  "greeting": "Hi {name}",
+  "@greeting": {
+    "description": "Personal greeting",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

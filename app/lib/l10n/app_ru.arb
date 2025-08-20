@@ -1,0 +1,16 @@
+{
+  "@@locale": "ru",
+  "hello": "Привет",
+  "@hello": {},
+  "welcome": "Добро пожаловать",
+  "@welcome": {},
+  "greeting": "Привет {name}",
+  "@greeting": {
+    "description": "Приветственное сообщение",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

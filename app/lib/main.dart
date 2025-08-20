@@ -1,7 +1,9 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:stopfires/auth_provider.dart';
 import 'package:stopfires/firebase_options.dart';
+import 'package:stopfires/l10n/app_localizations.dart';
 import 'package:stopfires/pages/loading_page.dart';
 import 'package:stopfires/router.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +50,14 @@ class MyApp extends ConsumerWidget {
         routeInformationParser: router.routeInformationParser,
         routerDelegate: router.routerDelegate,
         routeInformationProvider: router.routeInformationProvider,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('ru'),
         theme: ThemeData(
           useMaterial3: false,
           colorScheme: const ColorScheme(
