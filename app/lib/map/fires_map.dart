@@ -100,12 +100,26 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             // Add another small delay before loading fires to ensure map is fully stable
             Future.delayed(const Duration(milliseconds: 1000), () {
               if (mounted) {
-                _loadFires(); // Load fires AFTER map is ready
+                // Only load fires if map has small visible bounds
+                if (_hasSmallVisibleBounds()) {
+                  _loadFires(); // Load fires AFTER map is ready and bounds are small
+                } else {
+                  _logger.i(
+                    'Skipping initial fire load - map bounds too large',
+                  );
+                }
 
                 // Set up automatic refresh every 5 minutes (300000ms) like in HTML version
                 Timer.periodic(const Duration(minutes: 5), (timer) {
                   if (mounted) {
-                    _loadFires();
+                    // Check bounds before each periodic load
+                    if (_hasSmallVisibleBounds()) {
+                      _loadFires();
+                    } else {
+                      _logger.i(
+                        'Skipping periodic fire load - map bounds too large',
+                      );
+                    }
                   } else {
                     timer.cancel();
                   }
@@ -145,20 +159,33 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                   }
                   _debounceTimer = Timer(const Duration(seconds: 2), () {
                     if (mounted && mapReady) {
-                      _loadFires()
-                          .then((_) {
-                            if (mounted) {
-                              setState(() => updatingViewport = false);
-                            }
-                          })
-                          .catchError((e) {
-                            if (mounted) {
-                              setState(() => updatingViewport = false);
-                              _logger.e(
-                                'Error loading fires after map movement: $e',
-                              );
-                            }
-                          });
+                      // Clear fires if bounds become too large
+                      _clearFiresIfBoundsTooLarge();
+
+                      // Only load fires if map has small visible bounds
+                      if (_hasSmallVisibleBounds()) {
+                        _loadFires()
+                            .then((_) {
+                              if (mounted) {
+                                setState(() => updatingViewport = false);
+                              }
+                            })
+                            .catchError((e) {
+                              if (mounted) {
+                                setState(() => updatingViewport = false);
+                                _logger.e(
+                                  'Error loading fires after map movement: $e',
+                                );
+                              }
+                            });
+                      } else {
+                        _logger.i(
+                          'Skipping fire load after map movement - bounds too large',
+                        );
+                        if (mounted) {
+                          setState(() => updatingViewport = false);
+                        }
+                      }
                       _updatePeerMarkersForViewport();
                     }
                   });
@@ -190,6 +217,57 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     } catch (e) {
       _logger.e('Error getting map bounds: $e');
       return null;
+    }
+  }
+
+  // Check if map has small visible bounds (not zoomed out too far)
+  bool _hasSmallVisibleBounds() {
+    try {
+      if (!mounted || !mapReady) {
+        return false;
+      }
+
+      final bounds = mapController.camera.visibleBounds;
+
+      // Calculate the diagonal distance of the visible area
+      final latDiff = (bounds.north - bounds.south).abs();
+      final lonDiff = (bounds.east - bounds.west).abs();
+
+      // Convert to approximate meters (1 degree ≈ 111,000 meters)
+      final latDistanceMeters = latDiff * 111000;
+      final lonDistanceMeters = lonDiff * 111000 * cos(bounds.north * pi / 180);
+
+      // Calculate diagonal distance
+      final diagonalDistance = sqrt(
+        latDistanceMeters * latDistanceMeters +
+            lonDistanceMeters * lonDistanceMeters,
+      );
+
+      // Consider bounds "small" if diagonal is less than 1000km (1,000,000 meters)
+      // This prevents loading fires for very large areas
+      const maxDiagonalDistance = 100000000.0; // 100,000km
+
+      _logger.d(
+        'Map bounds diagonal distance: ${diagonalDistance.toStringAsFixed(0)}m (max: ${maxDiagonalDistance.toStringAsFixed(0)}m)',
+      );
+
+      return diagonalDistance < maxDiagonalDistance;
+    } catch (e) {
+      _logger.e('Error checking map bounds size: $e');
+      return false;
+    }
+  }
+
+  // Clear fires when map bounds become too large
+  void _clearFiresIfBoundsTooLarge() {
+    if (mapReady && !_hasSmallVisibleBounds()) {
+      _logger.i('Clearing fires - map bounds too large');
+      if (mounted) {
+        setState(() {
+          fires = [];
+          clusters = [];
+        });
+      }
     }
   }
 
@@ -631,6 +709,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   Future<void> _loadFires() async {
     if (!mounted) return;
 
+    // Check if map has small visible bounds before loading fires
+    if (mapReady && !_hasSmallVisibleBounds()) {
+      _logger.i(
+        'Skipping fire load - map bounds too large (zoomed out too far)',
+      );
+      return;
+    }
+
     setState(() => loading = true);
     try {
       _logger.i('Loading fires for window: $window, sensor: $sensor');
@@ -682,6 +768,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     if (!mounted) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    // Clear fires if bounds become too large during build
+    _clearFiresIfBoundsTooLarge();
 
     // Debug: Log cluster information
     _logger.d(
@@ -784,7 +873,18 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadFires,
+            onPressed: () {
+              if (_hasSmallVisibleBounds()) {
+                _loadFires();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please zoom in closer to load fires'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
             tooltip: 'Refresh fires for current viewport',
           ),
           PopupMenuButton<String>(
@@ -889,6 +989,22 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                 ),
               ),
             ),
+          if (mapReady && !_hasSmallVisibleBounds())
+            const Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text(
+                  'Zoom in closer to load fires',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    backgroundColor: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           // Recenter to my location button
           if (currentPosition != null)
             Positioned(
@@ -973,6 +1089,12 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         return [];
       }
     } else {
+      // Additional check: ensure map has small visible bounds
+      if (!_hasSmallVisibleBounds()) {
+        _logger.d('Map bounds too large; skipping fetch');
+        return [];
+      }
+
       // Get current map bounds safely
       final bounds = _getSafeMapBounds();
 
