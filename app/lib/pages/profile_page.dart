@@ -1,4 +1,4 @@
-import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/providers/auth_provider.dart';
 import 'package:stopfires/config.dart';
 import 'package:stopfires/router.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';

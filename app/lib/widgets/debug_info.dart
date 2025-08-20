@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../auth_provider.dart';
+import '../providers/auth_provider.dart';
 
 class DebugInfo extends HookConsumerWidget {
   const DebugInfo({super.key});
@@ -27,17 +27,11 @@ class DebugInfo extends HookConsumerWidget {
           children: [
             SelectableText(
               'Project ID: ${corbadoAuth.projectId}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 10),
             ),
             SelectableText(
               'RPID: ${rpIdSnapshot.data}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 10),
             ),
           ],
         ),

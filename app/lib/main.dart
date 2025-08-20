@@ -1,7 +1,7 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/providers/auth_provider.dart';
 import 'package:stopfires/firebase_options.dart';
 import 'package:stopfires/l10n/app_localizations.dart';
 import 'package:stopfires/pages/loading_page.dart';

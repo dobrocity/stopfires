@@ -1,5 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
-import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/providers/auth_provider.dart';
 import 'package:stopfires/map/fires_map.dart';
 import 'package:stopfires/map/location_consent.dart';
 import 'package:stopfires/pages/auth_page.dart';

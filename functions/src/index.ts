@@ -3,6 +3,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { createRemoteJWKSet, jwtVerify, JWTVerifyOptions } from 'jose';
 import { setGlobalOptions } from 'firebase-functions/v2/options';
+import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import * as dotenv from 'dotenv';
 
 // Initialize dotenv to load environment variables
@@ -12,6 +13,22 @@ setGlobalOptions({ region: 'europe-west1', maxInstances: 10 });
 
 admin.initializeApp();
 const auth = admin.auth();
+
+// Logger configuration
+const logger = {
+  info: (message: string, ...args: any[]) => {
+    console.log(`[INFO] ${message}`, ...args);
+  },
+  warn: (message: string, ...args: any[]) => {
+    console.warn(`[WARN] ${message}`, ...args);
+  },
+  error: (message: string, ...args: any[]) => {
+    console.error(`[ERROR] ${message}`, ...args);
+  },
+  debug: (message: string, ...args: any[]) => {
+    console.log(`[DEBUG] ${message}`, ...args);
+  },
+};
 
 // --- Corbado OIDC configuration ---
 const OIDC_ISSUER = 'https://corbado.stopfires.org'; // issuer (iss)
@@ -81,7 +98,7 @@ export const verifyAndMint = functions.https.onCall(async (data, _context) => {
     const email = typeof payload.email === 'string' ? payload.email : undefined;
 
     // Namespace your Firebase UID to avoid collisions
-    const uid = `corbado:${sub}`;
+    const uid = `corbado~${sub}`;
 
     await ensureFirebaseUser(uid, email);
     const RESERVED = new Set([
@@ -118,7 +135,7 @@ export const verifyAndMint = functions.https.onCall(async (data, _context) => {
     const customToken = await auth.createCustomToken(uid, claims);
     return { customToken, uid, email };
   } catch (e: any) {
-    console.error('verifyAndMint failed:', e);
+    logger.error('verifyAndMint failed:', e);
     throw new functions.https.HttpsError(
       'unauthenticated',
       e.message ?? 'Token verification failed'
@@ -141,10 +158,59 @@ export const verifyCorbado = functions.https.onCall(async (data, _context) => {
     const { payload, header } = await verifyCorbadoIdToken(idToken);
     return { valid: true, header, payload };
   } catch (e: any) {
-    console.error('verifyCorbado failed:', e);
+    logger.error('verifyCorbado failed:', e);
     throw new functions.https.HttpsError(
       'unauthenticated',
       e.message ?? 'Token verification failed'
     );
   }
 });
+
+export const setLocationTTL = onDocumentUpdated(
+  'users/{uid}/status/current_location',
+  async (event) => {
+    try {
+      const beforeSnap = event.data?.before;
+      const afterSnap = event.data?.after;
+
+      if (!afterSnap) {
+        logger.warn('setLocationTTL: No document data found');
+        return;
+      }
+
+      logger.info(`setLocationTTL: Processing document ${event.params.uid}}`);
+
+      const afterData = afterSnap.data() ?? {};
+
+      // Only process if the document was actually updated (not just created)
+      if (beforeSnap && beforeSnap.exists && afterSnap.exists) {
+        const ts = afterData.ts ?? new Date();
+
+        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+        const expireAt = new Date(
+          ts.toMillis ? ts.toMillis() + THIRTY_DAYS : ts.getTime() + THIRTY_DAYS
+        );
+
+        // Add expireAt if missing (clients shouldn't control retention)
+        if (!('expireAt' in afterData)) {
+          logger.info(
+            `setLocationTTL: Adding expireAt ${expireAt.toISOString()} to document`
+          );
+          await afterSnap.ref.update({ expireAt });
+          logger.info(
+            'setLocationTTL: Successfully updated document with expireAt'
+          );
+        } else {
+          logger.debug('setLocationTTL: Document already has expireAt field');
+        }
+      } else {
+        logger.debug(
+          'setLocationTTL: Document was created, skipping TTL update'
+        );
+      }
+    } catch (error) {
+      logger.error('setLocationTTL: Error processing document:', error);
+      throw error;
+    }
+  }
+);

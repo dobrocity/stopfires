@@ -578,7 +578,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       );
     }
 
-    final location = ref.watch(geolocationProvider);
+    final location = ref.watch(locationFirestoreProvider);
     final currentPosition = location.value;
 
     final markers = fires.map((f) {

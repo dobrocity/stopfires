@@ -1,5 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
-import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/providers/auth_provider.dart';
 import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/email_edit.dart';
 import 'package:stopfires/screens/email_verify_otp.dart';
