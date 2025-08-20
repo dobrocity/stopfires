@@ -4,9 +4,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:math';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:stopfires/config.dart';
+import 'package:stopfires/providers/geolocation_provider.dart';
 
 class FirePoint {
   final double lat;
@@ -39,13 +40,13 @@ class FireCluster {
   });
 }
 
-class FiresMapPage extends StatefulWidget {
+class FiresMapPage extends ConsumerStatefulWidget {
   const FiresMapPage({super.key});
   @override
-  State<FiresMapPage> createState() => _FiresMapPageState();
+  ConsumerState<FiresMapPage> createState() => _FiresMapPageState();
 }
 
-class _FiresMapPageState extends State<FiresMapPage> {
+class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   final mapController = MapController();
   final _logger = Logger();
   List<FirePoint> fires = [];
@@ -57,8 +58,6 @@ class _FiresMapPageState extends State<FiresMapPage> {
   bool mapReady = false;
   bool mapInitializing = true;
   Timer? _debounceTimer;
-  Position? _currentPosition;
-  StreamSubscription<Position>? _positionSubscription;
 
   @override
   void initState() {
@@ -75,7 +74,6 @@ class _FiresMapPageState extends State<FiresMapPage> {
               mapInitializing = false;
             });
             _setupMapListeners();
-            _initLocationTracking();
             // Add another small delay before loading fires to ensure map is fully stable
             Future.delayed(const Duration(milliseconds: 1000), () {
               if (mounted) {
@@ -174,62 +172,7 @@ class _FiresMapPageState extends State<FiresMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
-    _positionSubscription?.cancel();
     super.dispose();
-  }
-
-  Future<void> _initLocationTracking() async {
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _logger.w('Location services are disabled');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location services are disabled')),
-          );
-        }
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.deniedForever ||
-          permission == LocationPermission.denied) {
-        _logger.w('Location permission denied');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permission denied')),
-          );
-        }
-        return;
-      }
-
-      // Start position stream
-      final settings = const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-      );
-      _positionSubscription?.cancel();
-      _positionSubscription =
-          Geolocator.getPositionStream(locationSettings: settings).listen((
-            pos,
-          ) {
-            if (!mounted) return;
-            setState(() {
-              _currentPosition = pos;
-            });
-          });
-
-      // Also fetch the current position immediately
-      final current = await Geolocator.getCurrentPosition();
-      if (mounted) {
-        setState(() => _currentPosition = current);
-      }
-    } catch (e) {
-      _logger.e('Error initializing location tracking: $e');
-    }
   }
 
   // --- Haversine distance calculation (meters) ---
@@ -635,6 +578,9 @@ class _FiresMapPageState extends State<FiresMapPage> {
       );
     }
 
+    final location = ref.watch(geolocationProvider);
+    final currentPosition = location.value;
+
     final markers = fires.map((f) {
       return Marker(
         point: LatLng(f.lat, f.lon),
@@ -653,13 +599,10 @@ class _FiresMapPageState extends State<FiresMapPage> {
     }).toList();
 
     // Add current location marker on top if available
-    if (_currentPosition != null) {
+    if (currentPosition != null) {
       markers.add(
         Marker(
-          point: LatLng(
-            _currentPosition!.latitude,
-            _currentPosition!.longitude,
-          ),
+          point: LatLng(currentPosition.latitude, currentPosition.longitude),
           width: 18,
           height: 18,
           child: Container(
@@ -756,14 +699,14 @@ class _FiresMapPageState extends State<FiresMapPage> {
                 // Add cluster polygons first (behind markers)
                 ...clusterPolygons,
                 // Add current location accuracy circle (as polygon) behind marker
-                if (_currentPosition != null && _currentPosition!.accuracy > 0)
+                if (currentPosition != null && currentPosition.accuracy > 0)
                   PolygonLayer(
                     polygons: [
                       Polygon(
                         points: _createCircle(
-                          _currentPosition!.latitude,
-                          _currentPosition!.longitude,
-                          _currentPosition!.accuracy / 111000.0,
+                          currentPosition.latitude,
+                          currentPosition.longitude,
+                          currentPosition.accuracy / 111000.0,
                         ),
                         color: const Color.fromRGBO(33, 150, 243, 0.15),
                         borderColor: const Color.fromRGBO(33, 150, 243, 0.4),
@@ -824,7 +767,7 @@ class _FiresMapPageState extends State<FiresMapPage> {
               ),
             ),
           // Recenter to my location button
-          if (_currentPosition != null)
+          if (currentPosition != null)
             Positioned(
               bottom: 88,
               right: 16,
@@ -834,10 +777,7 @@ class _FiresMapPageState extends State<FiresMapPage> {
                 onPressed: () {
                   final zoom = mapController.camera.zoom;
                   mapController.move(
-                    LatLng(
-                      _currentPosition!.latitude,
-                      _currentPosition!.longitude,
-                    ),
+                    LatLng(currentPosition.latitude, currentPosition.longitude),
                     zoom < 13 ? 13 : zoom,
                   );
                 },
