@@ -4,7 +4,7 @@
   "@hello": {},
   "welcome": "Добро пожаловать",
   "@welcome": {},
-  "app_name": "Stopfires",
+  "app_name": "stopfires.org",
   "@app_name": {},
   "greeting": "Привет {name}",
   "@greeting": {
