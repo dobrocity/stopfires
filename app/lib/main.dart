@@ -58,20 +58,7 @@ class MyApp extends ConsumerWidget {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('ru'),
-        theme: ThemeData(
-          useMaterial3: false,
-          colorScheme: const ColorScheme(
-            brightness: Brightness.light,
-            primary: Color(0xFF1953ff),
-            onPrimary: Colors.white,
-            secondary: Colors.white,
-            onSecondary: Color(0xFF1953ff),
-            error: Colors.redAccent,
-            onError: Colors.white,
-            surface: Color(0xFF1953ff),
-            onSurface: Color(0xFF1953ff),
-          ),
-        ),
+        theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.red),
       ),
     );
   }

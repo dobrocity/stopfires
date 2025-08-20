@@ -28,10 +28,6 @@ class ProfilePage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Firebase UID: ${user.value?.firebase?.uid ?? 'Not available'}',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
                     const SizedBox(height: 20),
                     Text(
                       context.l10n.welcome,

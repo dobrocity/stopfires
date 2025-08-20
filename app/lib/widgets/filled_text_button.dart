@@ -45,7 +45,12 @@ class FilledTextButton extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onPrimary,
               ),
             )
-          : Text(content),
+          : Text(
+              content,
+              style: textStyle.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
     );
   }
 }
