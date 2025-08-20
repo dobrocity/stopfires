@@ -2,6 +2,7 @@ import 'package:corbado_auth/corbado_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:stopfires/providers/firebase_providers.dart';
 
 // Corbado SDK provider. This will be used by other providers to
@@ -70,11 +71,11 @@ final userProvider = StreamProvider<UserEntity?>((ref) async* {
       final cred = await auth.signInWithCustomToken(customToken);
 
       yield UserEntity(corbado: extUser, firebase: cred.user);
-    } on FirebaseFunctionsException catch (_) {
+    } on FirebaseFunctionsException catch (e) {
       // Backend refused (e.g., unauthenticated / invalid token)
       // You may want to surface this via another provider / logger.
       // For now, reflect an unauthenticated state.
-      // debugPrint('verifyAndMint failed: ${e.code} ${e.message}');
+      Logger().e('verifyAndMint failed: ${e.code} ${e.message}');
       if (auth.currentUser != null) {
         await auth.signOut();
       }
