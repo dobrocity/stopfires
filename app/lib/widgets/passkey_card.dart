@@ -1,5 +1,6 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:stopfires/config.dart';
 
 class PasskeyCard extends StatelessWidget {
   final PasskeyInfo passkey;

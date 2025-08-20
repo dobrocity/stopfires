@@ -29,18 +29,18 @@ class PasskeyAppendScreen extends HookWidget
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
             context.l10n.set_up_your_passkey,
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
             context.l10n.set_up_your_passkey_description,
-            style: TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 20),
           ),
         ),
         const SizedBox(height: 20),

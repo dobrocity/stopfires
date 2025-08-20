@@ -293,6 +293,36 @@ abstract class AppLocalizations {
   /// **'Add passkey'**
   String get add_passkey;
 
+  /// No description provided for @set_up_your_passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your passkey'**
+  String get set_up_your_passkey;
+
+  /// No description provided for @set_up_your_passkey_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick and secure login using Apple Touch ID or Face ID instead of passwords.'**
+  String get set_up_your_passkey_description;
+
+  /// No description provided for @create_passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Create passkey'**
+  String get create_passkey;
+
+  /// No description provided for @maybe_later.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get maybe_later;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

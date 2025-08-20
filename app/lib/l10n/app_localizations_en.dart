@@ -110,6 +110,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add_passkey => 'Add passkey';
 
   @override
+  String get set_up_your_passkey => 'Set up your passkey';
+
+  @override
+  String get set_up_your_passkey_description => 'Quick and secure login using Apple Touch ID or Face ID instead of passwords.';
+
+  @override
+  String get create_passkey => 'Create passkey';
+
+  @override
+  String get maybe_later => 'Maybe later';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }

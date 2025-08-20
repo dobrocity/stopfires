@@ -110,6 +110,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get add_passkey => 'Добавить PassKey';
 
   @override
+  String get set_up_your_passkey => 'Настройте ваш PassKey';
+
+  @override
+  String get set_up_your_passkey_description => 'Быстрый и безопасный вход с помощью Touch ID или Face ID вместо паролей.';
+
+  @override
+  String get create_passkey => 'Создать PassKey';
+
+  @override
+  String get maybe_later => 'Может позже';
+
+  @override
+  String get delete => 'Удалить';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }
