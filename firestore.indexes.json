@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "locations",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "geohash", "order": "ASCENDING" },
+        { "fieldPath": "ts", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

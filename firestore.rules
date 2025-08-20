@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      // Profile (optional, adjust reads as you like)
+      match /profile/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Latest point (single doc)
+      match /status/current_location {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasAll(['lat','lng','ts'])
+          && request.resource.data.lat is number
+          && request.resource.data.lng is number
+          && (!('accuracy' in request.resource.data) || request.resource.data.accuracy is number)
+          && (!('speed' in request.resource.data) || request.resource.data.speed is number)
+          && (!('heading' in request.resource.data) || request.resource.data.heading is number)
+          && (!('geohash' in request.resource.data) || request.resource.data.geohash is string)
+          // Require server timestamp transform:
+          && request.resource.data.ts == request.time;
+      }
+
+      // Time series
+      match /locations/{locId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasAll(['lat','lng','ts'])
+          && request.resource.data.lat is number
+          && request.resource.data.lng is number
+          && (!('accuracy' in request.resource.data) || request.resource.data.accuracy is number)
+          && (!('speed' in request.resource.data) || request.resource.data.speed is number)
+          && (!('heading' in request.resource.data) || request.resource.data.heading is number)
+          && (!('geohash' in request.resource.data) || request.resource.data.geohash is string)
+          && (!('source' in request.resource.data) || request.resource.data.source in ['fg','bg','sig'])
+          && request.resource.data.ts == request.time
+          // expireAt is set by a backend; allow missing on create:
+          && (!('expireAt' in request.resource.data) || request.resource.data.expireAt is timestamp);
+
+        // Prevent client edits after creation (append-only)
+        allow update, delete: if false;
+      }
+
+      // Optional presence
+      match /presence/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+  }
+}
