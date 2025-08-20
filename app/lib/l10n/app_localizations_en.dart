@@ -136,4 +136,102 @@ class AppLocalizationsEn extends AppLocalizations {
   String greeting(String name) {
     return 'Hi $name';
   }
+
+  @override
+  String help_improve_app_location(String appName) {
+    return 'Help improve $appName by sharing your location. We only collect what we need, and you can pause at any time.';
+  }
+
+  @override
+  String get what_we_collect => 'What we collect';
+
+  @override
+  String get gps_coordinates => 'GPS coordinates (latitude & longitude)';
+
+  @override
+  String get timestamp_and_accuracy => 'Timestamp and accuracy';
+
+  @override
+  String get speed_and_heading => 'Speed and heading (if available)';
+
+  @override
+  String get hashed_region => 'Hashed region (geohash) for nearby features';
+
+  @override
+  String get how_we_use_it => 'How we use it';
+
+  @override
+  String get show_current_position => 'Show your current position in the app';
+
+  @override
+  String get generate_trip_history => 'Generate trip history (time series)';
+
+  @override
+  String get enable_background_updates => 'Enable optional background updates (if you opt in)';
+
+  @override
+  String get your_choices => 'Your choices';
+
+  @override
+  String get enable_location_tracking => 'Enable location tracking';
+
+  @override
+  String get can_pause_later => 'You can pause or disable later in Settings';
+
+  @override
+  String get allow_background_updates => 'Allow background updates';
+
+  @override
+  String get required_android_foreground => 'Required for background service';
+
+  @override
+  String get use_approximate_location => 'Use approximate location';
+
+  @override
+  String get lower_precision_privacy => 'Lower precision to improve privacy and battery';
+
+  @override
+  String get data_retention => 'Data retention';
+
+  @override
+  String get trip_history_storage => 'How long your trip history is stored';
+
+  @override
+  String get days_7 => '7 days';
+
+  @override
+  String get days_14 => '14 days';
+
+  @override
+  String get days_30 => '30 days';
+
+  @override
+  String get days_90 => '90 days';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get privacy_policy => 'Privacy Policy';
+
+  @override
+  String get terms_of_service => 'Terms of Service';
+
+  @override
+  String get i_agree_to_above => 'I have read and agree to the above.';
+
+  @override
+  String get can_change_settings => 'You can change these settings at any time.';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get accept_continue => 'Accept';
+
+  @override
+  String get could_not_open_link => 'Could not open link';
+
+  @override
+  String get location_consent_title => 'Location Permission';
 }

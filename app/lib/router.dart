@@ -1,6 +1,7 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
 import 'package:stopfires/map/fires_map.dart';
+import 'package:stopfires/map/location_consent.dart';
 import 'package:stopfires/pages/auth_page.dart';
 import 'package:stopfires/pages/edit_profile_page.dart';
 import 'package:stopfires/pages/passkey_list_page.dart';
@@ -15,6 +16,7 @@ class Routes {
   static const editProfile = '/edit-profile';
   static const passkeyList = '/passkey-list';
   static const sharedMap = '/shared-map';
+  static const locationConsent = '/location-consent';
 }
 
 GoRoute _defaultTransitionGoRoute({
@@ -71,6 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _defaultTransitionGoRoute(
         path: Routes.sharedMap,
         builder: (context, state) => FiresMapPage(),
+      ),
+      _defaultTransitionGoRoute(
+        path: Routes.locationConsent,
+        builder: (context, state) => LocationConsentScreen(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

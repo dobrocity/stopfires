@@ -136,4 +136,102 @@ class AppLocalizationsRu extends AppLocalizations {
   String greeting(String name) {
     return 'Привет $name';
   }
+
+  @override
+  String help_improve_app_location(String appName) {
+    return 'Помогите улучшить $appName, поделившись своим местоположением. Мы собираем только то, что нам нужно, и вы можете приостановить в любое время.';
+  }
+
+  @override
+  String get what_we_collect => 'Что мы собираем';
+
+  @override
+  String get gps_coordinates => 'GPS координаты (широта и долгота)';
+
+  @override
+  String get timestamp_and_accuracy => 'Временная метка и точность';
+
+  @override
+  String get speed_and_heading => 'Скорость и направление (если доступно)';
+
+  @override
+  String get hashed_region => 'Хешированный регион (geohash) для ближайших функций';
+
+  @override
+  String get how_we_use_it => 'Как мы используем';
+
+  @override
+  String get show_current_position => 'Показать ваше текущее положение в приложении';
+
+  @override
+  String get generate_trip_history => 'Создать историю поездок (временной ряд)';
+
+  @override
+  String get enable_background_updates => 'Включить опциональные фоновые обновления (если вы согласны)';
+
+  @override
+  String get your_choices => 'Ваш выбор';
+
+  @override
+  String get enable_location_tracking => 'Включить отслеживание местоположения';
+
+  @override
+  String get can_pause_later => 'Вы можете приостановить или отключить позже в Настройках';
+
+  @override
+  String get allow_background_updates => 'Разрешить фоновые обновления';
+
+  @override
+  String get required_android_foreground => 'Требуется для работы приложения в фоновом режиме';
+
+  @override
+  String get use_approximate_location => 'Использовать приблизительное местоположение';
+
+  @override
+  String get lower_precision_privacy => 'Меньшая точность для улучшения конфиденциальности и батареи';
+
+  @override
+  String get data_retention => 'Хранение данных';
+
+  @override
+  String get trip_history_storage => 'Как долго хранится история ваших поездок';
+
+  @override
+  String get days_7 => '7 дней';
+
+  @override
+  String get days_14 => '14 дней';
+
+  @override
+  String get days_30 => '30 дней';
+
+  @override
+  String get days_90 => '90 дней';
+
+  @override
+  String get privacy => 'Конфиденциальность';
+
+  @override
+  String get privacy_policy => 'Политика конфиденциальности';
+
+  @override
+  String get terms_of_service => 'Условия использования';
+
+  @override
+  String get i_agree_to_above => 'Я прочитал и согласен с вышеизложенным.';
+
+  @override
+  String get can_change_settings => 'Вы можете изменить эти настройки в любое время.';
+
+  @override
+  String get decline => 'Отклонить';
+
+  @override
+  String get accept_continue => 'Принять';
+
+  @override
+  String get could_not_open_link => 'Не удалось открыть ссылку';
+
+  @override
+  String get location_consent_title => 'Разрешение на местоположение';
 }

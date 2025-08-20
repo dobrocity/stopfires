@@ -340,6 +340,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hi {name}'**
   String greeting(String name);
+
+  /// No description provided for @help_improve_app_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve {appName} by sharing your location. We only collect what we need, and you can pause at any time.'**
+  String help_improve_app_location(String appName);
+
+  /// No description provided for @what_we_collect.
+  ///
+  /// In en, this message translates to:
+  /// **'What we collect'**
+  String get what_we_collect;
+
+  /// No description provided for @gps_coordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS coordinates (latitude & longitude)'**
+  String get gps_coordinates;
+
+  /// No description provided for @timestamp_and_accuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp and accuracy'**
+  String get timestamp_and_accuracy;
+
+  /// No description provided for @speed_and_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed and heading (if available)'**
+  String get speed_and_heading;
+
+  /// No description provided for @hashed_region.
+  ///
+  /// In en, this message translates to:
+  /// **'Hashed region (geohash) for nearby features'**
+  String get hashed_region;
+
+  /// No description provided for @how_we_use_it.
+  ///
+  /// In en, this message translates to:
+  /// **'How we use it'**
+  String get how_we_use_it;
+
+  /// No description provided for @show_current_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your current position in the app'**
+  String get show_current_position;
+
+  /// No description provided for @generate_trip_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate trip history (time series)'**
+  String get generate_trip_history;
+
+  /// No description provided for @enable_background_updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable optional background updates (if you opt in)'**
+  String get enable_background_updates;
+
+  /// No description provided for @your_choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Your choices'**
+  String get your_choices;
+
+  /// No description provided for @enable_location_tracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location tracking'**
+  String get enable_location_tracking;
+
+  /// No description provided for @can_pause_later.
+  ///
+  /// In en, this message translates to:
+  /// **'You can pause or disable later in Settings'**
+  String get can_pause_later;
+
+  /// No description provided for @allow_background_updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow background updates'**
+  String get allow_background_updates;
+
+  /// No description provided for @required_android_foreground.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for background service'**
+  String get required_android_foreground;
+
+  /// No description provided for @use_approximate_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Use approximate location'**
+  String get use_approximate_location;
+
+  /// No description provided for @lower_precision_privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower precision to improve privacy and battery'**
+  String get lower_precision_privacy;
+
+  /// No description provided for @data_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'Data retention'**
+  String get data_retention;
+
+  /// No description provided for @trip_history_storage.
+  ///
+  /// In en, this message translates to:
+  /// **'How long your trip history is stored'**
+  String get trip_history_storage;
+
+  /// No description provided for @days_7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get days_7;
+
+  /// No description provided for @days_14.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days'**
+  String get days_14;
+
+  /// No description provided for @days_30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get days_30;
+
+  /// No description provided for @days_90.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get days_90;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// No description provided for @privacy_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacy_policy;
+
+  /// No description provided for @terms_of_service.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get terms_of_service;
+
+  /// No description provided for @i_agree_to_above.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and agree to the above.'**
+  String get i_agree_to_above;
+
+  /// No description provided for @can_change_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change these settings at any time.'**
+  String get can_change_settings;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
+
+  /// No description provided for @accept_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept_continue;
+
+  /// No description provided for @could_not_open_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link'**
+  String get could_not_open_link;
+
+  /// No description provided for @location_consent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Permission'**
+  String get location_consent_title;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
