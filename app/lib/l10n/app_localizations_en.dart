@@ -42,6 +42,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get create_new_account => 'Create a new account';
 
   @override
+  String get edit_email_address => 'Edit the email address';
+
+  @override
+  String get insert_new_email_address => 'Insert the new email address below.';
+
+  @override
+  String get edit_email => 'Edit email';
+
+  @override
+  String get back => 'Back';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }

@@ -161,6 +161,30 @@ abstract class AppLocalizations {
   /// **'Create a new account'**
   String get create_new_account;
 
+  /// No description provided for @edit_email_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the email address'**
+  String get edit_email_address;
+
+  /// No description provided for @insert_new_email_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert the new email address below.'**
+  String get insert_new_email_address;
+
+  /// No description provided for @edit_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit email'**
+  String get edit_email;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

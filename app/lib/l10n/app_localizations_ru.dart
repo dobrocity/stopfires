@@ -42,6 +42,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get create_new_account => 'Создать новый аккаунт';
 
   @override
+  String get edit_email_address => 'Изменить электронную почту';
+
+  @override
+  String get insert_new_email_address => 'Введите новую электронную почту ниже.';
+
+  @override
+  String get edit_email => 'Изменить электронную почту';
+
+  @override
+  String get back => 'Назад';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }

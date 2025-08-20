@@ -1,4 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
@@ -32,17 +33,17 @@ class EmailEditScreen extends HookWidget
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 10),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
-            'Edit the email address',
+            context.l10n.edit_email_address,
             style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'Insert the new email address below.',
+            context.l10n.insert_new_email_address,
             style: TextStyle(fontSize: 20),
           ),
         ),
@@ -50,9 +51,9 @@ class EmailEditScreen extends HookWidget
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: TextField(
             controller: emailController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Email address',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: context.l10n.email_address,
             ),
           ),
         ),
@@ -65,7 +66,7 @@ class EmailEditScreen extends HookWidget
             onTap: () async {
               await block.updateEmail(emailController.text);
             },
-            content: 'Edit email',
+            content: context.l10n.edit_email,
           ),
         ),
         const SizedBox(height: 10),
@@ -74,7 +75,7 @@ class EmailEditScreen extends HookWidget
           height: 50,
           child: OutlinedTextButton(
             onTap: block.navigateToVerifyEmail,
-            content: 'Back',
+            content: context.l10n.back,
           ),
         ),
         const SizedBox(height: 10),
