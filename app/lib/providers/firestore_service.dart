@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'firebase_providers.dart';
 
 /// Service class for Firestore operations using Riverpod providers
 class FirestoreService {
   final FirebaseFirestore _firestore;
   final firebase_auth.FirebaseAuth _auth;
+  final Logger _logger = Logger();
 
   FirestoreService(this._firestore, this._auth);
 
@@ -26,7 +28,7 @@ class FirestoreService {
       final doc = await userDoc.get();
       return doc.data();
     } catch (e) {
-      print('Error getting user profile: $e');
+      _logger.e('Error getting user profile: $e');
       return null;
     }
   }
@@ -42,7 +44,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error updating user profile: $e');
+      _logger.e('Error updating user profile: $e');
       rethrow;
     }
   }
@@ -73,7 +75,7 @@ class FirestoreService {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error adding document: $e');
+      _logger.e('Error adding document: $e');
       rethrow;
     }
   }
@@ -89,7 +91,7 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error updating document: $e');
+      _logger.e('Error updating document: $e');
       rethrow;
     }
   }
@@ -99,7 +101,7 @@ class FirestoreService {
     try {
       await _firestore.doc(documentPath).delete();
     } catch (e) {
-      print('Error deleting document: $e');
+      _logger.e('Error deleting document: $e');
       rethrow;
     }
   }
@@ -115,12 +117,13 @@ final firestoreServiceProvider = Provider<FirestoreService>((ref) {
 /// Provider for user profile data
 final userProfileProvider = StreamProvider<Map<String, dynamic>?>((ref) async* {
   final service = ref.watch(firestoreServiceProvider);
+  final logger = Logger();
 
   try {
     final profile = await service.getUserProfile();
     yield profile;
   } catch (e) {
-    print('Error in userProfileProvider: $e');
+    logger.e('Error in userProfileProvider: $e');
     yield null;
   }
 });

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:math';
@@ -268,10 +267,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     final bounds = _getSafeMapBounds();
     if (bounds == null) return;
 
-    final north = bounds.north;
-    final south = bounds.south;
-    final east = bounds.east;
-    final west = bounds.west;
     final since = DateTime.now().subtract(const Duration(minutes: 5));
 
     final me = ref.read(userProvider).value?.firebase?.uid;

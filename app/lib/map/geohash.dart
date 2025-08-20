@@ -53,23 +53,25 @@ List<String> geohashCoveringPrefixes({
   final visited = <String>{};
 
   // Helper to get the cell bounds for a lat/lon at this precision
-  Map<String, double> _cellBounds(double lat, double lon) {
+  Map<String, double> cellBounds0(double lat, double lon) {
     double latMin = -90, latMax = 90, lonMin = -180, lonMax = 180;
     bool isLon = true;
     int bits = precision * 5;
     for (int i = 0; i < bits; i++) {
       if (isLon) {
         final mid = (lonMin + lonMax) / 2;
-        if (lon > mid)
+        if (lon > mid) {
           lonMin = mid;
-        else
+        } else {
           lonMax = mid;
+        }
       } else {
         final mid = (latMin + latMax) / 2;
-        if (lat > mid)
+        if (lat > mid) {
           latMin = mid;
-        else
+        } else {
           latMax = mid;
+        }
       }
       isLon = !isLon;
     }
@@ -86,7 +88,7 @@ List<String> geohashCoveringPrefixes({
   while (y <= north) {
     // Find the first cell on this row (west edge)
     final startHash = geohashEncode(y, west, precision: precision);
-    final rowStart = _cellBounds(y, west);
+    final rowStart = cellBounds0(y, west);
     double x = west;
     String cell = startHash;
     var cellBounds = rowStart;
@@ -100,11 +102,11 @@ List<String> geohashCoveringPrefixes({
       if (nextX > east) break;
       x = nextX;
       cell = geohashEncode(y, x, precision: precision);
-      cellBounds = _cellBounds(y, x);
+      cellBounds = cellBounds0(y, x);
     }
 
     // Move north to next row (just above current cell's north edge)
-    final nextY = _cellBounds(y, west)['latMax']! + 1e-9;
+    final nextY = cellBounds0(y, west)['latMax']! + 1e-9;
     if (nextY > north) break;
     y = nextY;
   }
