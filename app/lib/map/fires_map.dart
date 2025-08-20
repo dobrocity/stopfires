@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:math';
@@ -8,6 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:stopfires/config.dart';
 import 'package:stopfires/providers/geolocation_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stopfires/providers/firebase_providers.dart';
+import 'package:stopfires/providers/auth_provider.dart';
 
 class FirePoint {
   final double lat;
@@ -57,7 +61,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   bool updatingViewport = false;
   bool mapReady = false;
   bool mapInitializing = true;
+  bool _initialCenteredToLocation = false;
   Timer? _debounceTimer;
+
+  // Other users' locations subscription and state
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _otherUsersSub;
+  final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
+  _otherDocsByUid = {};
+  List<Marker> _otherUserMarkers = [];
 
   @override
   void initState() {
@@ -73,7 +84,20 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               mapReady = true;
               mapInitializing = false;
             });
+            // If we already have a current position, center immediately once
+            try {
+              final position = ref.read(locationFirestoreProvider).value;
+              if (position != null && !_initialCenteredToLocation) {
+                final currentZoom = mapController.camera.zoom;
+                mapController.move(
+                  LatLng(position.latitude, position.longitude),
+                  currentZoom < 13 ? 13 : currentZoom,
+                );
+                _initialCenteredToLocation = true;
+              }
+            } catch (_) {}
             _setupMapListeners();
+            _subscribeOtherUsers();
             // Add another small delay before loading fires to ensure map is fully stable
             Future.delayed(const Duration(milliseconds: 1000), () {
               if (mounted) {
@@ -136,6 +160,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                               );
                             }
                           });
+                      _updatePeerMarkersForViewport();
                     }
                   });
                 }
@@ -172,6 +197,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _otherUsersSub?.cancel();
     super.dispose();
   }
 
@@ -190,6 +216,100 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         pow(sin(dLat / 2), 2) +
         cos(toRad(lat1)) * cos(toRad(lat2)) * pow(sin(dLon / 2), 2);
     return 2 * R * asin(sqrt(a));
+  }
+
+  void _subscribeOtherUsers() {
+    // Cancel any previous subscription
+    _otherUsersSub?.cancel();
+
+    try {
+      final firestore = ref.read(firestoreProvider);
+      final me = ref.read(firebaseAuthProvider).currentUser?.uid;
+
+      // Only show fresh markers (last 30 min)
+      final sinceTs = Timestamp.fromDate(
+        DateTime.now().subtract(const Duration(minutes: 30)),
+      );
+
+      final q = firestore
+          .collection('public')
+          .doc('current_locations')
+          .collection('users')
+          .where('ts', isGreaterThan: sinceTs) // recent only
+          .orderBy('ts', descending: true); // newest first (single-field index)
+
+      _otherUsersSub = q.snapshots().listen(
+        (snap) {
+          for (final d in snap.docs) {
+            final uid = d.id; // doc id is the user id in the mirror
+            if (uid == me) continue; // skip my own marker if desired
+            _otherDocsByUid[uid] = d;
+          }
+          _updatePeerMarkersForViewport(); // do your bbox filter here
+        },
+        onError: (error, stackTrace) => _logger.e(
+          'Error listening to other users locations',
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    } catch (e, st) {
+      _logger.e(
+        'Failed to subscribe to other users locations',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  void _updatePeerMarkersForViewport() {
+    if (!mounted) return;
+
+    final bounds = _getSafeMapBounds();
+    if (bounds == null) return;
+
+    final north = bounds.north;
+    final south = bounds.south;
+    final east = bounds.east;
+    final west = bounds.west;
+    final since = DateTime.now().subtract(const Duration(minutes: 5));
+
+    final me = ref.read(userProvider).value?.firebase?.uid;
+
+    final markers = <Marker>[];
+    _otherDocsByUid.forEach((uid, doc) {
+      if (uid == me) return; // Skip my own marker; shown separately
+
+      final data = doc.data();
+      final lat = (data['lat'] as num?)?.toDouble();
+      final lng = (data['lng'] as num?)?.toDouble();
+      final ts = (data['ts'] as Timestamp?)?.toDate() ?? DateTime(1970);
+      if (lat == null || lng == null) return;
+      if (!ts.isAfter(since)) return;
+
+      markers.add(
+        Marker(
+          point: LatLng(lat, lng),
+          width: 14,
+          height: 14,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color.fromRGBO(76, 175, 80, 0.9), // green
+              border: Border.all(
+                color: const Color.fromRGBO(56, 142, 60, 1),
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+
+    if (!mounted) return;
+    setState(() {
+      _otherUserMarkers = markers;
+    });
   }
 
   // --- Enhanced clustering algorithm matching the HTML version exactly ---
@@ -626,6 +746,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       );
     }
 
+    // Add other users' markers
+    final allMarkers = [...markers, ..._otherUserMarkers];
+
     // Create cluster polygons
     _logger.d('Creating ${clusters.length} cluster polygons');
     final clusterPolygons = clusters
@@ -687,9 +810,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
           if (mapReady)
             FlutterMap(
               mapController: mapController,
-              options: const MapOptions(
-                initialCenter: LatLng(42.4410, 19.2627), // Montenegro center
-                initialZoom: 8,
+              options: MapOptions(
+                initialCenter: currentPosition != null
+                    ? LatLng(
+                        currentPosition.latitude,
+                        currentPosition.longitude,
+                      )
+                    : const LatLng(0, 0),
+                initialZoom: currentPosition != null ? 13 : 2,
               ),
               children: [
                 TileLayer(
@@ -714,8 +842,8 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                       ),
                     ],
                   ),
-                // Add fire markers on top
-                MarkerLayer(markers: markers),
+                // Add fire markers and other users on top
+                MarkerLayer(markers: allMarkers),
               ],
             )
           else
@@ -828,26 +956,50 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     // Only try to get map bounds if the map is ready
     String url;
     if (!mapReady) {
-      // Use Montenegro bounds if map not ready yet
-      if (sensor == 'viirs') {
-        url =
-            'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/VIIRS_SNPP_NRT/18.36,41.8,20.37,43.62/1';
+      // If map is not ready yet, try to use current location as a small bbox; otherwise skip
+      final current = ref.read(locationFirestoreProvider).value;
+      if (current != null) {
+        // ~10km box around current location
+        final double delta = 0.1; // approx ~11km in lat
+        final minLat = current.latitude - delta;
+        final maxLat = current.latitude + delta;
+        final minLon = current.longitude - delta;
+        final maxLon = current.longitude + delta;
+        if (sensor == 'viirs') {
+          url =
+              'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/VIIRS_SNPP_NRT/$minLon,$minLat,$maxLon,$maxLat/1';
+        } else {
+          url =
+              'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/MODIS_NRT/$minLon,$minLat,$maxLon,$maxLat/1';
+        }
       } else {
-        url =
-            'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/MODIS_NRT/18.36,41.8,20.37,43.62/1';
+        // No bounds available yet — return empty and wait until map is ready
+        _logger.d('Map not ready and no current location; skipping fetch');
+        return [];
       }
     } else {
       // Get current map bounds safely
       final bounds = _getSafeMapBounds();
 
       if (bounds == null) {
-        // Fallback to Montenegro bounds if map not ready yet
-        if (sensor == 'viirs') {
-          url =
-              'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/VIIRS_SNPP_NRT/18.36,41.8,20.37,43.62/1';
+        // If bounds are not available, try to use current location; else skip
+        final current = ref.read(locationFirestoreProvider).value;
+        if (current != null) {
+          final double delta = 0.1;
+          final minLat = current.latitude - delta;
+          final maxLat = current.latitude + delta;
+          final minLon = current.longitude - delta;
+          final maxLon = current.longitude + delta;
+          if (sensor == 'viirs') {
+            url =
+                'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/VIIRS_SNPP_NRT/$minLon,$minLat,$maxLon,$maxLat/1';
+          } else {
+            url =
+                'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/MODIS_NRT/$minLon,$minLat,$maxLon,$maxLat/1';
+          }
         } else {
-          url =
-              'https://firms.modaps.eosdis.nasa.gov/api/area/csv/a372f5f316a9edc52f4a8726902a3606/MODIS_NRT/18.36,41.8,20.37,43.62/1';
+          _logger.d('No bounds and no current location; skipping fetch');
+          return [];
         }
       } else {
         final minLon = bounds.west;

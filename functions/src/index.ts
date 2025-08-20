@@ -3,7 +3,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { createRemoteJWKSet, jwtVerify, JWTVerifyOptions } from 'jose';
 import { setGlobalOptions } from 'firebase-functions/v2/options';
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import * as dotenv from 'dotenv';
 
 // Initialize dotenv to load environment variables
@@ -98,7 +98,7 @@ export const verifyAndMint = functions.https.onCall(async (data, _context) => {
     const email = typeof payload.email === 'string' ? payload.email : undefined;
 
     // Namespace your Firebase UID to avoid collisions
-    const uid = `corbado~${sub}`;
+    const uid = `corbado_${sub}`;
 
     await ensureFirebaseUser(uid, email);
     const RESERVED = new Set([
@@ -166,51 +166,66 @@ export const verifyCorbado = functions.https.onCall(async (data, _context) => {
   }
 });
 
-export const setLocationTTL = onDocumentUpdated(
+export const mirrorCurrentLocation = onDocumentWritten(
   'users/{uid}/status/current_location',
   async (event) => {
-    try {
-      const beforeSnap = event.data?.before;
-      const afterSnap = event.data?.after;
+    const db = admin.firestore();
+    const uid = event.params.uid as string;
+    const after = event.data?.after;
 
-      if (!afterSnap) {
-        logger.warn('setLocationTTL: No document data found');
-        return;
-      }
-
-      logger.info(`setLocationTTL: Processing document ${event.params.uid}}`);
-
-      const afterData = afterSnap.data() ?? {};
-
-      // Only process if the document was actually updated (not just created)
-      if (beforeSnap && beforeSnap.exists && afterSnap.exists) {
-        const ts = afterData.ts ?? new Date();
-
-        const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-        const expireAt = new Date(
-          ts.toMillis ? ts.toMillis() + THIRTY_DAYS : ts.getTime() + THIRTY_DAYS
-        );
-
-        // Add expireAt if missing (clients shouldn't control retention)
-        if (!('expireAt' in afterData)) {
-          logger.info(
-            `setLocationTTL: Adding expireAt ${expireAt.toISOString()} to document`
-          );
-          await afterSnap.ref.update({ expireAt });
-          logger.info(
-            'setLocationTTL: Successfully updated document with expireAt'
-          );
-        } else {
-          logger.debug('setLocationTTL: Document already has expireAt field');
-        }
-      } else {
-        logger.debug(
-          'setLocationTTL: Document was created, skipping TTL update'
-        );
-      }
-    } catch (error) {
-      logger.error('setLocationTTL: Error processing document:', error);
-      throw error;
+    // Validate uid to ensure it's safe for use in document paths
+    if (!uid || typeof uid !== 'string') {
+      logger.error(`mirrorCurrentLocation: invalid uid: ${uid}`);
+      return;
     }
+
+    // Encode the uid to make it safe for use in document paths
+    const safeUid = encodeURIComponent(uid).replace(/[^a-zA-Z0-9\-_]/g, '_');
+
+    // Create the document reference directly
+    const publicDocRef = db
+      .collection('public')
+      .doc('current_locations')
+      .collection('users')
+      .doc(safeUid);
+
+    logger.debug(
+      `mirrorCurrentLocation: processing uid: ${uid}, path: ${publicDocRef.path}`
+    );
+
+    // If deleted -> remove from public
+    if (!after || !after.exists) {
+      await publicDocRef.delete().catch(() => {});
+      logger.info(`mirrorCurrentLocation: deleted public doc for ${uid}`);
+      return;
+    }
+
+    // If created or updated -> upsert public doc
+    const data = after.data() ?? {};
+
+    const lat = data.lat;
+    const lng = data.lng;
+    const geohash = data.geohash;
+    const ts =
+      data.ts && typeof data.ts.toDate === 'function'
+        ? data.ts
+        : admin.firestore.Timestamp.now();
+
+    // Validate minimally to avoid poisoning public collection
+    if (
+      typeof lat !== 'number' ||
+      typeof lng !== 'number' ||
+      typeof geohash !== 'string'
+    ) {
+      logger.warn(
+        `mirrorCurrentLocation: invalid fields for ${uid}, skipping`,
+        { lat, lng, geohash }
+      );
+      return;
+    }
+
+    const pub = { lat, lng, geohash, ts };
+    await publicDocRef.set(pub, { merge: true });
+    logger.debug(`mirrorCurrentLocation: upserted public doc for ${uid}`);
   }
 );
