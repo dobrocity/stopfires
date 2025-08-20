@@ -98,6 +98,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get full_name_has_been_changed_successfully => 'Полное имя успешно изменено.';
 
   @override
+  String get check_your_passkeys => 'Проверьте ваши PassKey';
+
+  @override
+  String get passkey_has_been_deleted_successfully => 'PassKey успешно удален.';
+
+  @override
+  String get passkey_has_been_created_successfully => 'PassKey успешно создан.';
+
+  @override
+  String get add_passkey => 'Добавить PassKey';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }

@@ -5,11 +5,7 @@ class PasskeyCard extends StatelessWidget {
   final PasskeyInfo passkey;
   final void Function(String) onDelete;
 
-  const PasskeyCard({
-    super.key,
-    required this.passkey,
-    required this.onDelete,
-  });
+  const PasskeyCard({super.key, required this.passkey, required this.onDelete});
 
   // Helper method to display a bottom sheet with options.
   void _showOptions(BuildContext context) {
@@ -20,7 +16,7 @@ class PasskeyCard extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.delete),
-              title: const Text('Delete'),
+              title: Text(context.l10n.delete),
               onTap: () {
                 // Close the bottom sheet
                 Navigator.of(context).pop();

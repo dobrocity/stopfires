@@ -269,6 +269,30 @@ abstract class AppLocalizations {
   /// **'Full name has been changed successfully.'**
   String get full_name_has_been_changed_successfully;
 
+  /// No description provided for @check_your_passkeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your passkeys'**
+  String get check_your_passkeys;
+
+  /// No description provided for @passkey_has_been_deleted_successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey has been deleted successfully.'**
+  String get passkey_has_been_deleted_successfully;
+
+  /// No description provided for @passkey_has_been_created_successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey has been created successfully.'**
+  String get passkey_has_been_created_successfully;
+
+  /// No description provided for @add_passkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add passkey'**
+  String get add_passkey;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

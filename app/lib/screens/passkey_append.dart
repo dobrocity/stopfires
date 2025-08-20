@@ -1,4 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
@@ -31,14 +32,14 @@ class PasskeyAppendScreen extends HookWidget
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
-            'Set up your passkey',
+            context.l10n.set_up_your_passkey,
             style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'Quick and secure login using Apple Touch ID or Face ID instead of passwords.',
+            context.l10n.set_up_your_passkey_description,
             style: TextStyle(fontSize: 20),
           ),
         ),
@@ -51,7 +52,7 @@ class PasskeyAppendScreen extends HookWidget
             onTap: () async {
               await block.passkeyAppend();
             },
-            content: 'Create passkey',
+            content: context.l10n.create_passkey,
           ),
         ),
         const SizedBox(height: 10),
@@ -72,7 +73,7 @@ class PasskeyAppendScreen extends HookWidget
             height: 50,
             child: OutlinedTextButton(
               onTap: block.skipPasskeyAppend,
-              content: 'Maybe later',
+              content: context.l10n.maybe_later,
             ),
           )
         else

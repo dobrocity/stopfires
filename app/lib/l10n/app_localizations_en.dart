@@ -98,6 +98,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get full_name_has_been_changed_successfully => 'Full name has been changed successfully.';
 
   @override
+  String get check_your_passkeys => 'Check your passkeys';
+
+  @override
+  String get passkey_has_been_deleted_successfully => 'Passkey has been deleted successfully.';
+
+  @override
+  String get passkey_has_been_created_successfully => 'Passkey has been created successfully.';
+
+  @override
+  String get add_passkey => 'Add passkey';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }

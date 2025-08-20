@@ -46,8 +46,8 @@ class PasskeyListPage extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Check your passkeys',
+                    Text(
+                      context.l10n.check_your_passkeys,
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
@@ -74,8 +74,10 @@ class PasskeyListPage extends HookConsumerWidget {
                                     );
 
                                     showSimpleNotification(
-                                      const Text(
-                                        'Passkey has been deleted successfully.',
+                                      Text(
+                                        context
+                                            .l10n
+                                            .passkey_has_been_deleted_successfully,
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       leading: const Icon(
@@ -115,8 +117,10 @@ class PasskeyListPage extends HookConsumerWidget {
                           try {
                             await corbado.appendPasskey();
                             showSimpleNotification(
-                              const Text(
-                                'Passkey has been created successfully.',
+                              Text(
+                                context
+                                    .l10n
+                                    .passkey_has_been_created_successfully,
                                 style: TextStyle(color: Colors.white),
                               ),
                               leading: const Icon(
@@ -133,7 +137,7 @@ class PasskeyListPage extends HookConsumerWidget {
                             isLoading.value = false;
                           }
                         },
-                        content: 'Add passkey',
+                        content: context.l10n.add_passkey,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -142,7 +146,7 @@ class PasskeyListPage extends HookConsumerWidget {
                       height: 50,
                       child: OutlinedTextButton(
                         onTap: context.pop,
-                        content: 'Back',
+                        content: context.l10n.back,
                       ),
                     ),
                   ],
