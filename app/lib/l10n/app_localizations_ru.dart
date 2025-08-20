@@ -71,6 +71,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get change_email => 'Изменить электронную почту';
 
   @override
+  String get passkey_verify_title => 'Войти с помощью PassKey';
+
+  @override
+  String get profile_page_description => 'Готовы борьба с пожарами вместе?';
+
+  @override
+  String get edit_profile => 'Изменить профиль';
+
+  @override
+  String get passkey_list => 'Список PassKey';
+
+  @override
+  String get sign_out => 'Выйти';
+
+  @override
+  String get full_name => 'Полное имя';
+
+  @override
+  String get email => 'Электронная почта';
+
+  @override
+  String get save_changes => 'Сохранить изменения';
+
+  @override
+  String get full_name_has_been_changed_successfully => 'Полное имя успешно изменено.';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }

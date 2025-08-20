@@ -71,6 +71,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get change_email => 'Change email';
 
   @override
+  String get passkey_verify_title => 'Login with passkey';
+
+  @override
+  String get profile_page_description => 'Ready to fight fires together?';
+
+  @override
+  String get edit_profile => 'Edit profile';
+
+  @override
+  String get passkey_list => 'Passkey list';
+
+  @override
+  String get sign_out => 'Sign out';
+
+  @override
+  String get full_name => 'Full name';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get save_changes => 'Save changes';
+
+  @override
+  String get full_name_has_been_changed_successfully => 'Full name has been changed successfully.';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }

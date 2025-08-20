@@ -51,8 +51,8 @@ class EditProfilePage extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Edit your profile',
+                    Text(
+                      context.l10n.edit_profile,
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
@@ -63,9 +63,9 @@ class EditProfilePage extends HookConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: TextField(
                         controller: fullName,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Full name',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          hintText: context.l10n.full_name,
                         ),
                       ),
                     ),
@@ -75,9 +75,9 @@ class EditProfilePage extends HookConsumerWidget {
                       child: TextField(
                         controller: email,
                         enabled: false,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Email',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          hintText: context.l10n.email,
                         ),
                       ),
                     ),
@@ -101,8 +101,10 @@ class EditProfilePage extends HookConsumerWidget {
                             );
 
                             showSimpleNotification(
-                              const Text(
-                                'Full name has been changed successfully.',
+                              Text(
+                                context
+                                    .l10n
+                                    .full_name_has_been_changed_successfully,
                                 style: TextStyle(color: Colors.white),
                               ),
                               leading: const Icon(
@@ -119,7 +121,7 @@ class EditProfilePage extends HookConsumerWidget {
                             isLoading.value = false;
                           }
                         },
-                        content: 'Save changes',
+                        content: context.l10n.save_changes,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -128,7 +130,7 @@ class EditProfilePage extends HookConsumerWidget {
                       height: 50,
                       child: OutlinedTextButton(
                         onTap: context.pop,
-                        content: 'Back',
+                        content: context.l10n.back,
                       ),
                     ),
                   ],

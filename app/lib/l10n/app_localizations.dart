@@ -215,6 +215,60 @@ abstract class AppLocalizations {
   /// **'Change email'**
   String get change_email;
 
+  /// No description provided for @passkey_verify_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with passkey'**
+  String get passkey_verify_title;
+
+  /// No description provided for @profile_page_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to fight fires together?'**
+  String get profile_page_description;
+
+  /// No description provided for @edit_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get edit_profile;
+
+  /// No description provided for @passkey_list.
+  ///
+  /// In en, this message translates to:
+  /// **'Passkey list'**
+  String get passkey_list;
+
+  /// No description provided for @sign_out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get sign_out;
+
+  /// No description provided for @full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get full_name;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @save_changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get save_changes;
+
+  /// No description provided for @full_name_has_been_changed_successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name has been changed successfully.'**
+  String get full_name_has_been_changed_successfully;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

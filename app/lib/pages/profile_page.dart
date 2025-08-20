@@ -45,8 +45,8 @@ class ProfilePage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'You are currently logged in. You have a JWT token that you can use to make calls to your backend.',
+                    Text(
+                      context.l10n.profile_page_description,
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 10),
@@ -55,7 +55,7 @@ class ProfilePage extends ConsumerWidget {
                       height: 50,
                       child: FilledTextButton(
                         onTap: () => context.push(Routes.editProfile),
-                        content: 'Edit profile',
+                        content: context.l10n.edit_profile,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -64,7 +64,7 @@ class ProfilePage extends ConsumerWidget {
                       height: 50,
                       child: FilledTextButton(
                         onTap: () => context.push(Routes.passkeyList),
-                        content: 'Passkey list',
+                        content: context.l10n.passkey_list,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -73,7 +73,7 @@ class ProfilePage extends ConsumerWidget {
                       height: 50,
                       child: OutlinedTextButton(
                         onTap: corbado.signOut,
-                        content: 'Sign out',
+                        content: context.l10n.sign_out,
                       ),
                     ),
                   ],

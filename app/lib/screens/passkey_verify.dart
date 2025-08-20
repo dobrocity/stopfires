@@ -1,4 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/generic_error.dart';
@@ -30,11 +31,11 @@ class PasskeyVerifyScreen extends HookWidget
       children: [
         MaybeGenericError(message: block.error?.translatedError),
         const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
-            'Login with your passkey',
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            context.l10n.passkey_verify_title,
+            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 20),
@@ -46,7 +47,7 @@ class PasskeyVerifyScreen extends HookWidget
             onTap: () async {
               await block.passkeyVerify();
             },
-            content: 'Login with passkey',
+            content: context.l10n.passkey_verify_title,
           ),
         ),
         const SizedBox(height: 10),
