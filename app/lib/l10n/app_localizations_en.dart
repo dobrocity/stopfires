@@ -234,4 +234,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get location_consent_title => 'Location Permission';
+
+  @override
+  String get location_sharing_disclaimer => 'Location Sharing Notice';
+
+  @override
+  String get location_sharing_disclaimer_text => 'Important: All users can see the recent locations of other online users on the shared map. Your location will be visible to help coordinate firefighting efforts and improve community safety.';
+
+  @override
+  String get location_sharing_disclaimer_acknowledge => 'I understand that my location will be visible to other users';
+
+  @override
+  String get location_sharing_disclaimer_privacy => 'Your exact location is only shared while you\'re actively using the app. You can disable location sharing at any time in settings.';
 }

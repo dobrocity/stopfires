@@ -532,6 +532,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location Permission'**
   String get location_consent_title;
+
+  /// No description provided for @location_sharing_disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Sharing Notice'**
+  String get location_sharing_disclaimer;
+
+  /// No description provided for @location_sharing_disclaimer_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Important: All users can see the recent locations of other online users on the shared map. Your location will be visible to help coordinate firefighting efforts and improve community safety.'**
+  String get location_sharing_disclaimer_text;
+
+  /// No description provided for @location_sharing_disclaimer_acknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that my location will be visible to other users'**
+  String get location_sharing_disclaimer_acknowledge;
+
+  /// No description provided for @location_sharing_disclaimer_privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your exact location is only shared while you\'re actively using the app. You can disable location sharing at any time in settings.'**
+  String get location_sharing_disclaimer_privacy;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

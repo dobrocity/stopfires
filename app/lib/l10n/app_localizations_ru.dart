@@ -234,4 +234,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get location_consent_title => 'Разрешение на местоположение';
+
+  @override
+  String get location_sharing_disclaimer => 'Уведомление о совместном использовании местоположения';
+
+  @override
+  String get location_sharing_disclaimer_text => 'Важно: Все пользователи могут видеть недавние местоположения других пользователей онлайн на общей карте. Ваше местоположение будет видимым для координации усилий по тушению пожаров и улучшения безопасности сообщества.';
+
+  @override
+  String get location_sharing_disclaimer_acknowledge => 'Я понимаю, что мое местоположение будет видимым для других пользователей';
+
+  @override
+  String get location_sharing_disclaimer_privacy => 'Ваше точное местоположение передается только во время активного использования приложения. Вы можете отключить передачу местоположения в любое время в настройках.';
 }

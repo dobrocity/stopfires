@@ -167,5 +167,13 @@
   "could_not_open_link": "Не удалось открыть ссылку",
   "@could_not_open_link": {},
   "location_consent_title": "Разрешение на местоположение",
-  "@location_consent_title": {}
+  "@location_consent_title": {},
+  "location_sharing_disclaimer": "Уведомление о совместном использовании местоположения",
+  "@location_sharing_disclaimer": {},
+  "location_sharing_disclaimer_text": "Важно: Все пользователи могут видеть недавние местоположения других пользователей онлайн на общей карте. Ваше местоположение будет видимым для координации усилий по тушению пожаров и улучшения безопасности сообщества.",
+  "@location_sharing_disclaimer_text": {},
+  "location_sharing_disclaimer_acknowledge": "Я понимаю, что мое местоположение будет видимым для других пользователей",
+  "@location_sharing_disclaimer_acknowledge": {},
+  "location_sharing_disclaimer_privacy": "Ваше точное местоположение передается только во время активного использования приложения. Вы можете отключить передачу местоположения в любое время в настройках.",
+  "@location_sharing_disclaimer_privacy": {}
 }

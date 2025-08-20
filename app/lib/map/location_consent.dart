@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:stopfires/config.dart';
 import 'package:stopfires/router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../l10n/app_localizations.dart';
 
 class LocationConsentResult {
   final bool trackingEnabled;
@@ -61,7 +60,8 @@ class LocationConsentScreen extends StatefulWidget {
 }
 
 class _LocationConsentScreenState extends State<LocationConsentScreen> {
-  bool _agreeCore = false; // main “I agree”
+  bool _agreeCore = false; // main "I agree"
+  bool _acknowledgeSharing = false; // acknowledge location sharing disclaimer
   bool _enableTracking = true; // master switch
   bool _enableBackground = false; // background collection
   bool _approximateOnly = false; // reduced accuracy preference
@@ -75,21 +75,22 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
 
   Future<void> _open(Uri url) async {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.could_not_open_link)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.could_not_open_link)),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canAccept = _agreeCore && _enableTracking;
+    final l10n = context.l10n;
+    final canAccept = _agreeCore && _acknowledgeSharing && _enableTracking;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title ?? context.l10n.location_consent_title),
-      ),
+      appBar: AppBar(title: Text(widget.title ?? l10n.location_consent_title)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -97,7 +98,9 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
             // Header card
             Card(
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -114,7 +117,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        AppLocalizations.of(context)!.help_improve_app_location(
+                        l10n.help_improve_app_location(
                           widget.appName ?? 'stopfires.org',
                         ),
                         style: theme.textTheme.bodyMedium,
@@ -127,52 +130,111 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
 
             const SizedBox(height: 16),
 
-            // What we collect
+            // Location Sharing Disclaimer - NEW SECTION
             _Section(
-              title: context.l10n.what_we_collect,
+              title: l10n.location_sharing_disclaimer,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Bullet(context.l10n.gps_coordinates),
-                  _Bullet(context.l10n.timestamp_and_accuracy),
-                  _Bullet(context.l10n.speed_and_heading),
-                  _Bullet(context.l10n.hashed_region),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.errorContainer.withValues(
+                        alpha: 0.3,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.colorScheme.error.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: theme.colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.location_sharing_disclaimer_text,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.location_sharing_disclaimer_privacy,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    value: _acknowledgeSharing,
+                    onChanged: (v) =>
+                        setState(() => _acknowledgeSharing = v ?? false),
+                    title: Text(
+                      l10n.location_sharing_disclaimer_acknowledge,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+
+            // What we collect
+            _Section(
+              title: l10n.what_we_collect,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Bullet(l10n.gps_coordinates),
+                  _Bullet(l10n.timestamp_and_accuracy),
+                  _Bullet(l10n.speed_and_heading),
+                  _Bullet(l10n.hashed_region),
                 ],
               ),
             ),
 
             // How we use it
             _Section(
-              title: context.l10n.how_we_use_it,
+              title: l10n.how_we_use_it,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Bullet(context.l10n.show_current_position),
-                  _Bullet(context.l10n.generate_trip_history),
-                  _Bullet(context.l10n.enable_background_updates),
+                  _Bullet(l10n.show_current_position),
+                  _Bullet(l10n.generate_trip_history),
+                  _Bullet(l10n.enable_background_updates),
                 ],
               ),
             ),
 
             // Controls
             _Section(
-              title: context.l10n.your_choices,
+              title: l10n.your_choices,
               child: Column(
                 children: [
                   SwitchListTile.adaptive(
-                    title: Text(context.l10n.enable_location_tracking),
-                    subtitle: Text(context.l10n.can_pause_later),
+                    title: Text(l10n.enable_location_tracking),
+                    subtitle: Text(l10n.can_pause_later),
                     value: _enableTracking,
                     onChanged: (v) => setState(() => _enableTracking = v),
                   ),
                   if (!widget.hideBackgroundOption)
                     SwitchListTile.adaptive(
-                      title: Text(context.l10n.allow_background_updates),
-                      subtitle: Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.required_android_foreground,
-                      ),
+                      title: Text(l10n.allow_background_updates),
+                      subtitle: Text(l10n.required_android_foreground),
                       value: _enableBackground,
                       onChanged: _enableTracking
                           ? (v) => setState(() => _enableBackground = v)
@@ -180,37 +242,25 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                     ),
                   if (!widget.hideApproximateToggle)
                     SwitchListTile.adaptive(
-                      title: Text(context.l10n.use_approximate_location),
-                      subtitle: Text(context.l10n.lower_precision_privacy),
+                      title: Text(l10n.use_approximate_location),
+                      subtitle: Text(l10n.lower_precision_privacy),
                       value: _approximateOnly,
                       onChanged: _enableTracking
                           ? (v) => setState(() => _approximateOnly = v)
                           : null,
                     ),
                   ListTile(
-                    title: Text(context.l10n.data_retention),
-                    subtitle: Text(context.l10n.trip_history_storage),
+                    title: Text(l10n.data_retention),
+                    subtitle: Text(l10n.trip_history_storage),
                     trailing: DropdownButton<int>(
                       value: _retentionDays,
                       onChanged: (v) =>
                           setState(() => _retentionDays = v ?? _retentionDays),
                       items: [
-                        DropdownMenuItem(
-                          value: 7,
-                          child: Text(context.l10n.days_7),
-                        ),
-                        DropdownMenuItem(
-                          value: 14,
-                          child: Text(context.l10n.days_14),
-                        ),
-                        DropdownMenuItem(
-                          value: 30,
-                          child: Text(context.l10n.days_30),
-                        ),
-                        DropdownMenuItem(
-                          value: 90,
-                          child: Text(context.l10n.days_90),
-                        ),
+                        DropdownMenuItem(value: 7, child: Text(l10n.days_7)),
+                        DropdownMenuItem(value: 14, child: Text(l10n.days_14)),
+                        DropdownMenuItem(value: 30, child: Text(l10n.days_30)),
+                        DropdownMenuItem(value: 90, child: Text(l10n.days_90)),
                       ],
                     ),
                   ),
@@ -220,7 +270,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
 
             // Legal
             _Section(
-              title: context.l10n.privacy,
+              title: l10n.privacy,
               child: Wrap(
                 spacing: 12,
                 children: [
@@ -228,13 +278,13 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                     TextButton.icon(
                       onPressed: () => _open(widget.privacyPolicyUrl!),
                       icon: const Icon(Icons.privacy_tip_outlined),
-                      label: Text(context.l10n.privacy_policy),
+                      label: Text(l10n.privacy_policy),
                     ),
                   if (widget.termsUrl != null)
                     TextButton.icon(
                       onPressed: () => _open(widget.termsUrl!),
                       icon: const Icon(Icons.description_outlined),
-                      label: Text(context.l10n.terms_of_service),
+                      label: Text(l10n.terms_of_service),
                     ),
                 ],
               ),
@@ -244,8 +294,8 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
             CheckboxListTile(
               value: _agreeCore,
               onChanged: (v) => setState(() => _agreeCore = v ?? false),
-              title: Text(context.l10n.i_agree_to_above),
-              subtitle: Text(context.l10n.can_change_settings),
+              title: Text(l10n.i_agree_to_above),
+              subtitle: Text(l10n.can_change_settings),
             ),
 
             const SizedBox(height: 8),
@@ -256,7 +306,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: widget.onDecline ?? () => context.pop(),
-                    child: Text(context.l10n.decline),
+                    child: Text(l10n.decline),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -267,7 +317,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                             context.push(Routes.sharedMap);
                           }
                         : null,
-                    child: Text(context.l10n.accept_continue),
+                    child: Text(l10n.accept_continue),
                   ),
                 ),
               ],
