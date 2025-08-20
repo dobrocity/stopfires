@@ -15,7 +15,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome';
 
   @override
-  String get app_name => 'Stopfires';
+  String get app_name => 'stopfires.org';
+
+  @override
+  String get signup_init_title => 'Let\'s stop fires together';
+
+  @override
+  String get email_address => 'Email address';
+
+  @override
+  String get signup_init_button => 'Sign up';
+
+  @override
+  String get sign_up_already_registered => 'I already have an account';
 
   @override
   String greeting(String name) {

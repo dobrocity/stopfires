@@ -110,8 +110,32 @@ abstract class AppLocalizations {
   /// No description provided for @app_name.
   ///
   /// In en, this message translates to:
-  /// **'Stopfires'**
+  /// **'stopfires.org'**
   String get app_name;
+
+  /// No description provided for @signup_init_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s stop fires together'**
+  String get signup_init_title;
+
+  /// No description provided for @email_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get email_address;
+
+  /// No description provided for @signup_init_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signup_init_button;
+
+  /// No description provided for @sign_up_already_registered.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get sign_up_already_registered;
 
   /// Personal greeting
   ///

@@ -49,11 +49,11 @@ class SignupInitScreen extends HookWidget
             style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'Sign up using your biometrics like fingerprint or face.',
-            style: TextStyle(fontSize: 20),
+            context.l10n.signup_init_title,
+            style: const TextStyle(fontSize: 20),
           ),
         ),
         Padding(
@@ -61,9 +61,9 @@ class SignupInitScreen extends HookWidget
           child: TextField(
             key: const ValueKey('textfield-email'),
             controller: emailController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Email address',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: context.l10n.email_address,
             ),
           ),
         ),
@@ -97,7 +97,7 @@ class SignupInitScreen extends HookWidget
                 fullName: fullName != null ? fullNameController.text : 'fixed',
               );
             },
-            content: 'Sign up',
+            content: context.l10n.signup_init_button,
           ),
         ),
         const SizedBox(height: 10),
@@ -106,7 +106,7 @@ class SignupInitScreen extends HookWidget
           height: 50,
           child: OutlinedTextButton(
             onTap: block.navigateToLogin,
-            content: 'I already have an account',
+            content: context.l10n.sign_up_already_registered,
           ),
         ),
       ],

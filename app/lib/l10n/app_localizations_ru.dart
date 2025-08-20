@@ -18,6 +18,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get app_name => 'stopfires.org';
 
   @override
+  String get signup_init_title => 'Победим пожары вместе';
+
+  @override
+  String get email_address => 'Электронная почта';
+
+  @override
+  String get signup_init_button => 'Зарегистрироваться';
+
+  @override
+  String get sign_up_already_registered => 'У меня уже есть аккаунт';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }
