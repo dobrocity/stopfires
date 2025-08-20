@@ -31,9 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   flutter_map: ^8.2.1
   latlong2: ^0.9.1
   dio: ^5.9.0
@@ -51,7 +48,6 @@ dependencies:
   passkeys_ios: ^2.7.0
   firebase_core: any
   passkeys: any
-  corbado_telemetry_api_client: ^1.0.2
   http: any
 dev_dependencies:
   flutter_test:

@@ -121,14 +121,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  corbado_telemetry_api_client:
-    dependency: "direct main"
-    description:
-      name: corbado_telemetry_api_client
-      sha256: c454bc6a041001d515c0678393971bad605331559a9e256ac675ba705eccf924
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   crypto:
     dependency: transitive
     description:
@@ -153,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   dart_earcut:
     dependency: transitive
     description:

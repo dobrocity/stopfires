@@ -97,7 +97,7 @@ final userProvider = StreamProvider<UserEntity?>((ref) async* {
       final cred = await auth.signInWithCustomToken(customToken);
 
       yield UserEntity(corbado: extUser, firebase: cred.user);
-    } on FirebaseFunctionsException catch (e) {
+    } on FirebaseFunctionsException catch (_) {
       // Backend refused (e.g., unauthenticated / invalid token)
       // You may want to surface this via another provider / logger.
       // For now, reflect an unauthenticated state.
