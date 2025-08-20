@@ -1,4 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/generic_error.dart';
@@ -34,18 +35,18 @@ class LoginInitScreen extends HookWidget
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
-            'Welcome back',
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            context.l10n.welcome_back,
+            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'Enter your email address to log in with passkeys or email OTP.',
-            style: TextStyle(fontSize: 20),
+            context.l10n.login_init_title,
+            style: const TextStyle(fontSize: 20),
           ),
         ),
         Padding(
@@ -53,9 +54,9 @@ class LoginInitScreen extends HookWidget
           child: TextField(
             controller: emailController,
             autofillHints: [_getAutofillHint()],
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'Email address',
+              hintText: context.l10n.email_address,
             ),
           ),
         ),
@@ -72,7 +73,7 @@ class LoginInitScreen extends HookWidget
               final email = emailController.value.text;
               await block.submitLogin(loginIdentifier: email);
             },
-            content: 'Login',
+            content: context.l10n.login_init_button,
           ),
         ),
         const SizedBox(height: 10),
@@ -81,7 +82,7 @@ class LoginInitScreen extends HookWidget
           height: 50,
           child: OutlinedTextButton(
             onTap: block.navigateToSignup,
-            content: 'Create a new account',
+            content: context.l10n.create_new_account,
           ),
         ),
       ],

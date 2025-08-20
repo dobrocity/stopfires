@@ -137,6 +137,30 @@ abstract class AppLocalizations {
   /// **'I already have an account'**
   String get sign_up_already_registered;
 
+  /// No description provided for @welcome_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcome_back;
+
+  /// No description provided for @login_init_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s continue fighting fires together.'**
+  String get login_init_title;
+
+  /// No description provided for @login_init_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login_init_button;
+
+  /// No description provided for @create_new_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new account'**
+  String get create_new_account;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

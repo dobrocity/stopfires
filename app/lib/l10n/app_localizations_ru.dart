@@ -30,6 +30,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sign_up_already_registered => 'У меня уже есть аккаунт';
 
   @override
+  String get welcome_back => 'Привет снова';
+
+  @override
+  String get login_init_title => 'Продолжим борьбу с пожарами вместе.';
+
+  @override
+  String get login_init_button => 'Войти';
+
+  @override
+  String get create_new_account => 'Создать новый аккаунт';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }

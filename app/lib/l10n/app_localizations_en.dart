@@ -30,6 +30,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sign_up_already_registered => 'I already have an account';
 
   @override
+  String get welcome_back => 'Welcome back';
+
+  @override
+  String get login_init_title => 'Let\'s continue fighting fires together.';
+
+  @override
+  String get login_init_button => 'Login';
+
+  @override
+  String get create_new_account => 'Create a new account';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }
