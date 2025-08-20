@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class OutlinedTextButton extends StatelessWidget {
+class SecondaryTextButton extends StatelessWidget {
   final VoidCallback onTap;
   final String content;
   final bool disabled;
   final bool isLoading;
 
-  const OutlinedTextButton({
+  const SecondaryTextButton({
     super.key,
     required this.content,
     required this.onTap,
@@ -24,18 +24,16 @@ class OutlinedTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
-      color: Theme.of(context).colorScheme.onSecondary,
-    );
+    final textStyle = Theme.of(context).textTheme.bodyMedium!;
     final progressIndicatorSize = textStyle.fontSize! * 1.4;
 
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
+    return TextButton(
+      style: TextButton.styleFrom(
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: Theme.of(context).colorScheme.primary),
           borderRadius: BorderRadius.circular(10.0),
         ),
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        disabledBackgroundColor: Colors.grey.withOpacity(0.25),
         padding: const EdgeInsets.all(15),
       ),
       onPressed: disabled ? null : onPressed,
@@ -44,13 +42,13 @@ class OutlinedTextButton extends StatelessWidget {
               height: progressIndicatorSize,
               width: progressIndicatorSize,
               child: CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.onSecondary,
               ),
             )
           : Text(
               content,
               style: textStyle.copyWith(
-                color: Theme.of(context).colorScheme.onTertiary,
+                color: Theme.of(context).colorScheme.onSecondary,
               ),
             ),
     );

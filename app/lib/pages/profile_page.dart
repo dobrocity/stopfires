@@ -6,6 +6,7 @@ import 'package:stopfires/widgets/outlined_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stopfires/widgets/secondary_text_button.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -62,7 +63,7 @@ class ProfilePage extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: FilledTextButton(
+                      child: OutlinedTextButton(
                         onTap: () => context.push(Routes.editProfile),
                         content: context.l10n.edit_profile,
                       ),
@@ -71,7 +72,7 @@ class ProfilePage extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: FilledTextButton(
+                      child: OutlinedTextButton(
                         onTap: () => context.push(Routes.passkeyList),
                         content: context.l10n.passkey_list,
                       ),
@@ -80,7 +81,7 @@ class ProfilePage extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: OutlinedTextButton(
+                      child: SecondaryTextButton(
                         onTap: corbado.signOut,
                         content: context.l10n.sign_out,
                       ),
