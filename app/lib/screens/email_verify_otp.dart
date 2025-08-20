@@ -1,4 +1,5 @@
 import 'package:corbado_auth/corbado_auth.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
@@ -30,17 +31,17 @@ class EmailVerifyOtpScreen extends HookWidget
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Text(
-            'Verify your email address',
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            context.l10n.verify_email_address,
+            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            'We have sent you a 6 digit code to ${block.data.email}. Please enter the code below.',
+            context.l10n.verify_email_address_description(block.data.email),
             style: const TextStyle(fontSize: 20),
           ),
         ),
@@ -63,7 +64,7 @@ class EmailVerifyOtpScreen extends HookWidget
             onTap: () async {
               await block.submitOtpCode(otpController.text);
             },
-            content: 'Submit',
+            content: context.l10n.submit,
           ),
         ),
         const SizedBox(height: 10),
@@ -72,7 +73,7 @@ class EmailVerifyOtpScreen extends HookWidget
           height: 50,
           child: OutlinedTextButton(
             onTap: block.resendEmail,
-            content: 'Resend code',
+            content: context.l10n.resend_code,
           ),
         ),
         const SizedBox(height: 10),
@@ -81,7 +82,7 @@ class EmailVerifyOtpScreen extends HookWidget
           height: 50,
           child: OutlinedTextButton(
             onTap: block.navigateToEditEmail,
-            content: 'Change email',
+            content: context.l10n.change_email,
           ),
         ),
         const SizedBox(height: 10),

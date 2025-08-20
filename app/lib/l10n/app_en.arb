@@ -30,6 +30,20 @@
   "@edit_email": {},
   "back": "Back",
   "@back": {},
+  "verify_email_address": "Verify your email address",
+  "@verify_email_address": {},
+  "verify_email_address_description": "We have sent you a 6 digit code to {email}. Please enter the code below.",
+  "@verify_email_address_description": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "submit": "Submit",
+  "@submit": {},
+  "resend_code": "Resend code",
+  "@resend_code": {},
+  "change_email": "Change email",
+  "@change_email": {},
   "greeting": "Hi {name}",
   "@greeting": {
     "description": "Personal greeting",

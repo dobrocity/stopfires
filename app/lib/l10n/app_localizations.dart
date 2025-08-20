@@ -185,6 +185,36 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get back;
 
+  /// No description provided for @verify_email_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email address'**
+  String get verify_email_address;
+
+  /// No description provided for @verify_email_address_description.
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent you a 6 digit code to {email}. Please enter the code below.'**
+  String verify_email_address_description(Object email);
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// No description provided for @resend_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resend_code;
+
+  /// No description provided for @change_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get change_email;
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

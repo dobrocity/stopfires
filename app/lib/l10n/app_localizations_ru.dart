@@ -54,6 +54,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get back => 'Назад';
 
   @override
+  String get verify_email_address => 'Подтвердите электронную почту';
+
+  @override
+  String verify_email_address_description(Object email) {
+    return 'Мы отправили вам 6-значный код на $email. Пожалуйста, введите код ниже.';
+  }
+
+  @override
+  String get submit => 'Отправить';
+
+  @override
+  String get resend_code => 'Отправить код повторно';
+
+  @override
+  String get change_email => 'Изменить электронную почту';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }

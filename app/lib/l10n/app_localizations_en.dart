@@ -54,6 +54,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
+  String get verify_email_address => 'Verify your email address';
+
+  @override
+  String verify_email_address_description(Object email) {
+    return 'We have sent you a 6 digit code to $email. Please enter the code below.';
+  }
+
+  @override
+  String get submit => 'Submit';
+
+  @override
+  String get resend_code => 'Resend code';
+
+  @override
+  String get change_email => 'Change email';
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }
