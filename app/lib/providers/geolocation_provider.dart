@@ -1,9 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stopfires/providers/auth_provider.dart';
 import 'firebase_providers.dart';
+
+DateTime? _lastLocationWriteTime;
+double? _lastWrittenLatitude;
+double? _lastWrittenLongitude;
 
 /// Simple geohash implementation
 String _generateGeohash(double lat, double lng, {int precision = 9}) {
@@ -44,6 +49,35 @@ String _generateGeohash(double lat, double lng, {int precision = 9}) {
   }
 
   return geohash;
+}
+
+bool _shouldWriteLocation(Position position, Logger logger) {
+  if (_lastWrittenLatitude == null ||
+      _lastWrittenLongitude == null ||
+      _lastLocationWriteTime == null) {
+    return true; // First write since app start/session
+  }
+
+  final distanceMeters = Geolocator.distanceBetween(
+    _lastWrittenLatitude!,
+    _lastWrittenLongitude!,
+    position.latitude,
+    position.longitude,
+  );
+
+  final durationSinceLast = DateTime.now().difference(_lastLocationWriteTime!);
+
+  final isSignificantMove = distanceMeters > 100;
+  final isTimeWindowOk = kDebugMode ? true : durationSinceLast.inMinutes >= 5;
+
+  if (isSignificantMove && isTimeWindowOk) {
+    return true;
+  }
+
+  logger.d(
+    'Skip write: distance=${distanceMeters.toStringAsFixed(1)}m, sinceLast=${durationSinceLast.inSeconds}s',
+  );
+  return false;
 }
 
 /// Provider that handles location updates and writes them to Firestore
@@ -89,6 +123,7 @@ final locationFirestoreProvider = StreamProvider<Position?>((ref) async* {
           logger.e('Error in position stream: $e');
         })
         .asyncMap((position) async {
+          if (!_shouldWriteLocation(position, logger)) return position;
           await _writeLocationToFirestore(position, logger, ref);
           return position;
         });
@@ -114,12 +149,7 @@ Future<void> _writeLocationToFirestore(
 
     final firestore = ref.read(firestoreProvider);
     final latestRef = firestore.doc('users/$uid/status/current_location');
-    final latest = await latestRef.get();
-    if (latest.exists) {
-      logger.d('Latest location: ${latest.data()}');
-    } else {
-      logger.d('No latest location found');
-    }
+
     // Generate geohash
     final geoHash = _generateGeohash(position.latitude, position.longitude);
 
@@ -132,6 +162,10 @@ Future<void> _writeLocationToFirestore(
       'geohash': geoHash,
       'ts': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _lastWrittenLatitude = position.latitude;
+    _lastWrittenLongitude = position.longitude;
+    _lastLocationWriteTime = DateTime.now();
 
     logger.d(
       'Location updated in Firestore: ${position.latitude}, ${position.longitude}',
