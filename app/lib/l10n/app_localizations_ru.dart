@@ -74,7 +74,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get passkey_verify_title => 'Войти с помощью PassKey';
 
   @override
-  String get profile_page_description => 'Готовы борьба с пожарами вместе?';
+  String get profile_page_description => 'Готовы к борьбе с пожарами вместе?';
 
   @override
   String get edit_profile => 'Изменить профиль';
