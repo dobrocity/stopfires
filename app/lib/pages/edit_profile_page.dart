@@ -1,5 +1,6 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
@@ -39,10 +40,9 @@ class EditProfilePage extends HookConsumerWidget {
     }, [error.value]);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Corbado authentication')),
+      appBar: AppBar(title: Text(context.l10n.app_name)),
       body: Stack(
         children: [
-          DebugInfo(),
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),

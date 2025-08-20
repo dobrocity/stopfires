@@ -104,8 +104,14 @@ abstract class AppLocalizations {
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
-  /// **'Welcome2'**
+  /// **'Welcome'**
   String get welcome;
+
+  /// No description provided for @app_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopfires'**
+  String get app_name;
 
   /// Personal greeting
   ///

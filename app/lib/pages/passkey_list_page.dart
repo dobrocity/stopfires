@@ -1,5 +1,6 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/config.dart';
 import 'package:stopfires/screens/helper.dart';
 import 'package:stopfires/widgets/filled_text_button.dart';
 import 'package:stopfires/widgets/outlined_text_button.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:stopfires/widgets/debug_info.dart';
 
 class PasskeyListPage extends HookConsumerWidget {
   const PasskeyListPage({super.key});
@@ -34,10 +34,9 @@ class PasskeyListPage extends HookConsumerWidget {
     }, [error.value]);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Corbado authentication')),
+      appBar: AppBar(title: Text(context.l10n.app_name)),
       body: Stack(
         children: [
-          DebugInfo(),
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),

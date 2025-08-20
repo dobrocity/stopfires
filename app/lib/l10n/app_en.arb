@@ -4,6 +4,8 @@
   "@hello": {},
   "welcome": "Welcome",
   "@welcome": {},
+  "app_name": "Stopfires",
+  "@app_name": {},
   "greeting": "Hi {name}",
   "@greeting": {
     "description": "Personal greeting",

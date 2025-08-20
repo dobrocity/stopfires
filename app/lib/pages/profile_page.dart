@@ -6,7 +6,6 @@ import 'package:stopfires/widgets/outlined_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:stopfires/widgets/debug_info.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -17,10 +16,9 @@ class ProfilePage extends ConsumerWidget {
     final corbado = ref.watch(corbadoProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Corbado authentication')),
+      appBar: AppBar(title: Text(context.l10n.app_name)),
       body: Stack(
         children: [
-          DebugInfo(),
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),

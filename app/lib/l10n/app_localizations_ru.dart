@@ -15,6 +15,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get welcome => 'Добро пожаловать';
 
   @override
+  String get app_name => 'Stopfires';
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }
