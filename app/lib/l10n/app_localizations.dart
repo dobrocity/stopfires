@@ -323,6 +323,18 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// No description provided for @shared_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared map'**
+  String get shared_map;
+
+  /// No description provided for @fire_clusters_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire clusters - {fires} fires, {clusters} clusters'**
+  String fire_clusters_title(Object fires, Object clusters);
+
   /// Personal greeting
   ///
   /// In en, this message translates to:

@@ -80,6 +80,15 @@
   "@maybe_later": {},
   "delete": "Delete",
   "@delete": {},
+  "shared_map": "Shared map",
+  "@shared_map": {},
+  "fire_clusters_title": "Fire clusters - {fires} fires, {clusters} clusters",
+  "@fire_clusters_title": {
+    "placeholders": {
+      "fires": {},
+      "clusters": {}
+    }
+  },
   "greeting": "Hi {name}",
   "@greeting": {
     "description": "Personal greeting",

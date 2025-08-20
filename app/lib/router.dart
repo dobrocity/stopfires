@@ -1,5 +1,6 @@
 import 'package:corbado_auth/corbado_auth.dart';
 import 'package:stopfires/auth_provider.dart';
+import 'package:stopfires/map/fires_map.dart';
 import 'package:stopfires/pages/auth_page.dart';
 import 'package:stopfires/pages/edit_profile_page.dart';
 import 'package:stopfires/pages/passkey_list_page.dart';
@@ -13,6 +14,7 @@ class Routes {
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
   static const passkeyList = '/passkey-list';
+  static const sharedMap = '/shared-map';
 }
 
 GoRoute _defaultTransitionGoRoute({
@@ -65,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       _defaultTransitionGoRoute(
         path: Routes.passkeyList,
         builder: (context, state) => PasskeyListPage(),
+      ),
+      _defaultTransitionGoRoute(
+        path: Routes.sharedMap,
+        builder: (context, state) => FiresMapPage(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

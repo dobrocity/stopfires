@@ -54,6 +54,15 @@ class ProfilePage extends ConsumerWidget {
                       width: double.infinity,
                       height: 50,
                       child: FilledTextButton(
+                        onTap: () => context.push(Routes.sharedMap),
+                        content: context.l10n.shared_map,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: FilledTextButton(
                         onTap: () => context.push(Routes.editProfile),
                         content: context.l10n.edit_profile,
                       ),

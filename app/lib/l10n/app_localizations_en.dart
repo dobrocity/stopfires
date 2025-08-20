@@ -125,6 +125,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get shared_map => 'Shared map';
+
+  @override
+  String fire_clusters_title(Object fires, Object clusters) {
+    return 'Fire clusters - $fires fires, $clusters clusters';
+  }
+
+  @override
   String greeting(String name) {
     return 'Hi $name';
   }

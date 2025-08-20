@@ -5,28 +5,7 @@ import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:logger/logger.dart';
-
-// This Flutter app is a conversion of the HTML fire clustering system for Montenegro made by Avgust
-// Original HTML features implemented:
-// - FIRMS API integration for fire data
-// - Distance-based clustering (1km, 2km, 3km, 4km thresholds)
-// - Buffer polygons with exact HTML styling and colors
-// - Convex hull generation for cluster shapes
-// - Real-time fire monitoring with automatic refresh
-
-void main() => runApp(const FiresApp());
-
-class FiresApp extends StatelessWidget {
-  const FiresApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Stop Fires',
-      theme: ThemeData(useMaterial3: true),
-      home: const FiresMapPage(),
-    );
-  }
-}
+import 'package:stopfires/config.dart';
 
 class FirePoint {
   final double lat;
@@ -649,7 +628,7 @@ class _FiresMapPageState extends State<FiresMapPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Кластеры пожаров Черногории - ${fires.length} fires, ${clusters.length} clusters',
+          context.l10n.fire_clusters_title(fires.length, clusters.length),
         ),
         actions: [
           IconButton(

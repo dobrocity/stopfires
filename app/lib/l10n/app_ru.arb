@@ -80,6 +80,15 @@
   "@maybe_later": {},
   "delete": "Удалить",
   "@delete": {},
+  "shared_map": "Общая карта",
+  "@shared_map": {},
+  "fire_clusters_title": "Кластеры пожаров - {fires} пожаров, {clusters} кластеров",
+  "@fire_clusters_title": {
+    "placeholders": {
+      "fires": {},
+      "clusters": {}
+    }
+  },
   "greeting": "Привет {name}",
   "@greeting": {
     "description": "Приветственное сообщение",

@@ -125,6 +125,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get delete => 'Удалить';
 
   @override
+  String get shared_map => 'Общая карта';
+
+  @override
+  String fire_clusters_title(Object fires, Object clusters) {
+    return 'Кластеры пожаров - $fires пожаров, $clusters кластеров';
+  }
+
+  @override
   String greeting(String name) {
     return 'Привет $name';
   }
