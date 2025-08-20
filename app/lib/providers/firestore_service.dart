@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stopfires/providers/auth_provider.dart';
 import 'firebase_providers.dart';
 
 /// Service class for Firestore operations using Riverpod providers
