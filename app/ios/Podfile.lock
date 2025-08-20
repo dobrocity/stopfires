@@ -52,6 +52,9 @@ PODS:
   - Flutter (1.0.0)
   - flutter_secure_storage (6.0.0):
     - Flutter
+  - geolocator_apple (1.2.0):
+    - Flutter
+    - FlutterMacOS
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -92,6 +95,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - passkeys_ios (from `.symlinks/plugins/passkeys_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -126,6 +130,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  geolocator_apple:
+    :path: ".symlinks/plugins/geolocator_apple/darwin"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   passkeys_ios:
@@ -152,6 +158,7 @@ SPEC CHECKSUMS:
   FirebaseSharedSwift: 59266c22ccfcef604d725c034c568fa666ea9bda
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
+  geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMSessionFetcher: 02d6e866e90bc236f48a703a041dfe43e6221a29
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4

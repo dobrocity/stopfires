@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:math';
+import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:stopfires/config.dart';
 
@@ -56,6 +57,8 @@ class _FiresMapPageState extends State<FiresMapPage> {
   bool mapReady = false;
   bool mapInitializing = true;
   Timer? _debounceTimer;
+  Position? _currentPosition;
+  StreamSubscription<Position>? _positionSubscription;
 
   @override
   void initState() {
@@ -72,6 +75,7 @@ class _FiresMapPageState extends State<FiresMapPage> {
               mapInitializing = false;
             });
             _setupMapListeners();
+            _initLocationTracking();
             // Add another small delay before loading fires to ensure map is fully stable
             Future.delayed(const Duration(milliseconds: 1000), () {
               if (mounted) {
@@ -170,7 +174,62 @@ class _FiresMapPageState extends State<FiresMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _positionSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initLocationTracking() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _logger.w('Location services are disabled');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location services are disabled')),
+          );
+        }
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
+        _logger.w('Location permission denied');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permission denied')),
+          );
+        }
+        return;
+      }
+
+      // Start position stream
+      final settings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
+      );
+      _positionSubscription?.cancel();
+      _positionSubscription =
+          Geolocator.getPositionStream(locationSettings: settings).listen((
+            pos,
+          ) {
+            if (!mounted) return;
+            setState(() {
+              _currentPosition = pos;
+            });
+          });
+
+      // Also fetch the current position immediately
+      final current = await Geolocator.getCurrentPosition();
+      if (mounted) {
+        setState(() => _currentPosition = current);
+      }
+    } catch (e) {
+      _logger.e('Error initializing location tracking: $e');
+    }
   }
 
   // --- Haversine distance calculation (meters) ---
@@ -593,6 +652,37 @@ class _FiresMapPageState extends State<FiresMapPage> {
       );
     }).toList();
 
+    // Add current location marker on top if available
+    if (_currentPosition != null) {
+      markers.add(
+        Marker(
+          point: LatLng(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+          ),
+          width: 18,
+          height: 18,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.blueAccent, width: 2),
+            ),
+            child: Center(
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.blueAccent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     // Create cluster polygons
     _logger.d('Creating ${clusters.length} cluster polygons');
     final clusterPolygons = clusters
@@ -665,6 +755,22 @@ class _FiresMapPageState extends State<FiresMapPage> {
                 ),
                 // Add cluster polygons first (behind markers)
                 ...clusterPolygons,
+                // Add current location accuracy circle (as polygon) behind marker
+                if (_currentPosition != null && _currentPosition!.accuracy > 0)
+                  PolygonLayer(
+                    polygons: [
+                      Polygon(
+                        points: _createCircle(
+                          _currentPosition!.latitude,
+                          _currentPosition!.longitude,
+                          _currentPosition!.accuracy / 111000.0,
+                        ),
+                        color: const Color.fromRGBO(33, 150, 243, 0.15),
+                        borderColor: const Color.fromRGBO(33, 150, 243, 0.4),
+                        borderStrokeWidth: 1.5,
+                      ),
+                    ],
+                  ),
                 // Add fire markers on top
                 MarkerLayer(markers: markers),
               ],
@@ -717,121 +823,29 @@ class _FiresMapPageState extends State<FiresMapPage> {
                 ),
               ),
             ),
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (mapReady && _getSafeMapBounds() != null) ...[
-                      Text(
-                        'Viewport: ${_getSafeMapBounds()!.west.toStringAsFixed(2)}, ${_getSafeMapBounds()!.south.toStringAsFixed(2)} to ${_getSafeMapBounds()!.east.toStringAsFixed(2)}, ${_getSafeMapBounds()!.north.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ] else if (mapReady) ...[
-                      Text(
-                        'Map ready - waiting for bounds...',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.orange[600],
-                        ),
-                      ),
-                    ] else ...[
-                      Text(
-                        'Initializing map...',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.blue[600],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    // Add cluster legend
-                    if (clusters.isNotEmpty) ...[
-                      Text(
-                        'Cluster Levels:',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          _buildLegendItem(
-                            const Color(0xFFFF0000),
-                            '1km',
-                            '500m buffer',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildLegendItem(
-                            const Color(0xFFFF6666),
-                            '2km',
-                            '1km buffer',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildLegendItem(
-                            const Color(0xFFFFA500),
-                            '3km',
-                            '1.5km buffer',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildLegendItem(
-                            const Color(0xFFFFFF00),
-                            '4km',
-                            '2km buffer',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
+          // Recenter to my location button
+          if (_currentPosition != null)
+            Positioned(
+              bottom: 88,
+              right: 16,
+              child: FloatingActionButton(
+                mini: true,
+                tooltip: 'My location',
+                onPressed: () {
+                  final zoom = mapController.camera.zoom;
+                  mapController.move(
+                    LatLng(
+                      _currentPosition!.latitude,
+                      _currentPosition!.longitude,
+                    ),
+                    zoom < 13 ? 13 : zoom,
+                  );
+                },
+                child: const Icon(Icons.my_location),
               ),
             ),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLegendItem(Color color, String distance, String buffer) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: Color.fromRGBO(
-              (color.r * 255.0).round() & 0xff,
-              (color.g * 255.0).round() & 0xff,
-              (color.b * 255.0).round() & 0xff,
-              0.4,
-            ),
-            border: Border.all(
-              color: Color.fromRGBO(
-                (color.r * 255.0).round() & 0xff,
-                (color.g * 255.0).round() & 0xff,
-                (color.b * 255.0).round() & 0xff,
-                0.8,
-              ),
-              width: 1,
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          '$distance ($buffer)',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontSize: 10,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
     );
   }
 
