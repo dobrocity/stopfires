@@ -245,7 +245,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
       // Consider bounds "small" if diagonal is less than 1000km (1,000,000 meters)
       // This prevents loading fires for very large areas
-      const maxDiagonalDistance = 1000000.0; // 1000km
+      const maxDiagonalDistance = 4000000.0; // 4000km
 
       _logger.d(
         'Map bounds diagonal distance: ${diagonalDistance.toStringAsFixed(0)}m (max: ${maxDiagonalDistance.toStringAsFixed(0)}m)',
