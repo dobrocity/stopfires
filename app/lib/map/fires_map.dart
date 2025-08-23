@@ -124,9 +124,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                 ),
               ),
             ),
-
-          // Simple legend
-          Positioned(bottom: 16, right: 16, child: _legend()),
         ],
       ),
     );
@@ -239,7 +236,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   Future<void> _ensureIconRegistered() async {
     if (_iconRegistered) return;
     try {
-      final data = await rootBundle.load('assets/images/pin-3d.png');
+      final data = await rootBundle.load('assets/images/map_fire_icon.png');
       final bytes = data.buffer.asUint8List();
       await _c.addImage('pin-3d', bytes);
       _iconRegistered = true;
@@ -249,26 +246,13 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   }
 
   Future<void> _addFireSymbol(FirePoint fire, int index) async {
-    // Choose color by confidence
-    String markerColor = '#FF6B35';
-    final conf = fire.confidence;
-    if (conf != null) {
-      if (conf >= 80) {
-        markerColor = '#FF0000';
-      } else if (conf < 50) {
-        markerColor = '#FFA500';
-      }
-    }
-
     final symbol = await _c.addSymbol(
       m.SymbolOptions(
         geometry: m.LatLng(fire.lat, fire.lon),
         iconImage: _iconRegistered ? 'pin-3d' : null,
         iconSize: 1.0,
-        iconColor: _iconRegistered ? null : markerColor,
         textField: _iconRegistered ? null : '🔥',
         textSize: _iconRegistered ? 0 : 16.0,
-        textColor: _iconRegistered ? null : markerColor,
         textHaloColor: _iconRegistered ? null : '#FFFFFF',
         textHaloWidth: _iconRegistered ? 0 : 2.0,
       ),
@@ -304,56 +288,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _legend() {
-    Widget item(String label, String hex) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Color(int.parse(hex.replaceAll('#', '0xFF'))),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(label, style: const TextStyle(fontSize: 12)),
-        ],
-      ),
-    );
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Fire Confidence',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          item('High (80%+)', '#FF0000'),
-          item('Medium (50–79%)', '#FF6B35'),
-          item('Low (<50%)', '#FFA500'),
         ],
       ),
     );
