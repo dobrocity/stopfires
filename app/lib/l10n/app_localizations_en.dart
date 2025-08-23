@@ -77,7 +77,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_page_description => 'Ready to fight fires together?';
 
   @override
-  String get edit_profile => 'Edit profile';
+  String get edit_profile => 'Profile';
 
   @override
   String get passkey_list => 'Passkey list';
@@ -212,13 +212,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacy => 'Privacy';
 
   @override
+  String get settings => 'Settings';
+
+  @override
   String get privacy_policy => 'Privacy Policy';
 
   @override
   String get terms_of_service => 'Terms of Service';
 
   @override
-  String get i_agree_to_above => 'I have read and agree to the above.';
+  String get i_agree_to_above => 'I have read and agree to the Privacy Policy.';
 
   @override
   String get can_change_settings => 'You can change these settings at any time.';

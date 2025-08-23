@@ -230,7 +230,7 @@ abstract class AppLocalizations {
   /// No description provided for @edit_profile.
   ///
   /// In en, this message translates to:
-  /// **'Edit profile'**
+  /// **'Profile'**
   String get edit_profile;
 
   /// No description provided for @passkey_list.
@@ -485,6 +485,12 @@ abstract class AppLocalizations {
   /// **'Privacy'**
   String get privacy;
 
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
   /// No description provided for @privacy_policy.
   ///
   /// In en, this message translates to:
@@ -500,7 +506,7 @@ abstract class AppLocalizations {
   /// No description provided for @i_agree_to_above.
   ///
   /// In en, this message translates to:
-  /// **'I have read and agree to the above.'**
+  /// **'I have read and agree to the Privacy Policy.'**
   String get i_agree_to_above;
 
   /// No description provided for @can_change_settings.

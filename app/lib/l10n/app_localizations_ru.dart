@@ -77,7 +77,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profile_page_description => 'Готовы к борьбе с пожарами вместе?';
 
   @override
-  String get edit_profile => 'Изменить профиль';
+  String get edit_profile => 'Профиль';
 
   @override
   String get passkey_list => 'Список PassKey';
@@ -212,13 +212,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get privacy => 'Конфиденциальность';
 
   @override
+  String get settings => 'Настройки';
+
+  @override
   String get privacy_policy => 'Политика конфиденциальности';
 
   @override
   String get terms_of_service => 'Условия использования';
 
   @override
-  String get i_agree_to_above => 'Я прочитал и согласен с вышеизложенным.';
+  String get i_agree_to_above => 'Я прочитал и согласен с политикой конфиденциальности.';
 
   @override
   String get can_change_settings => 'Вы можете изменить эти настройки в любое время.';
@@ -233,7 +236,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get could_not_open_link => 'Не удалось открыть ссылку';
 
   @override
-  String get location_consent_title => 'Разрешение на местоположение';
+  String get location_consent_title => 'Согласие';
 
   @override
   String get location_sharing_disclaimer => 'Уведомление о совместном использовании местоположения';

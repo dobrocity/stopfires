@@ -73,8 +73,8 @@ class ProfilePage extends ConsumerWidget {
                       width: double.infinity,
                       height: 50,
                       child: OutlinedTextButton(
-                        onTap: () => context.push(Routes.passkeyList),
-                        content: context.l10n.passkey_list,
+                        onTap: () => context.push(Routes.settings),
+                        content: context.l10n.settings,
                       ),
                     ),
                     const SizedBox(height: 10),
