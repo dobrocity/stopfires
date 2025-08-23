@@ -200,7 +200,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                               TextButton(
                                 onPressed: () => _open(
                                   Uri.parse(
-                                    'https://stopfires.org/terms_of_service',
+                                    'https://stopfires.org/terms_of_use',
                                   ),
                                 ),
                                 style: TextButton.styleFrom(
