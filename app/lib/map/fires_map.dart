@@ -238,7 +238,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     try {
       final data = await rootBundle.load('assets/images/map_fire_icon.png');
       final bytes = data.buffer.asUint8List();
-      await _c.addImage('pin-3d', bytes);
+      await _c.addImage('map_fire_icon', bytes);
       _iconRegistered = true;
     } catch (_) {
       // If it fails, we fall back to text-only symbols
@@ -249,7 +249,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     final symbol = await _c.addSymbol(
       m.SymbolOptions(
         geometry: m.LatLng(fire.lat, fire.lon),
-        iconImage: _iconRegistered ? 'pin-3d' : null,
+        iconImage: _iconRegistered ? 'map_fire_icon' : null,
         iconSize: 1.0,
         textField: _iconRegistered ? null : '🔥',
         textSize: _iconRegistered ? 0 : 16.0,
