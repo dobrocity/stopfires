@@ -56,7 +56,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       body: Stack(
         children: [
           m.MapLibreMap(
-            styleString: kIsWeb
+            styleString: kIsWeb && !kDebugMode
                 ? '/assets/assets/styles/style-default.json'
                 : "assets/styles/style-default.json",
             trackCameraPosition: true,
@@ -67,6 +67,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             ),
             onMapCreated: (c) async {
               _c = c;
+              _logger.i('Map created successfully');
 
               // One tap handler; we'll map symbol.id -> FirePoint
               _c.onSymbolTapped.add((m.Symbol s) {
@@ -74,7 +75,11 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                 if (fp != null) _showFireInfo(fp);
               });
             },
-            onStyleLoadedCallback: _refreshFromVisibleRegion,
+
+            onStyleLoadedCallback: () {
+              _logger.i('Map style loaded successfully');
+              _refreshFromVisibleRegion();
+            },
             onCameraIdle: () {
               // Enhanced debouncing with position change detection
               _debounce?.cancel();
@@ -234,7 +239,11 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     // Add symbols for _fires
     for (int i = 0; i < _fires.length; i++) {
       final fire = _fires[i];
-      await _addFireSymbol(fire, i);
+      try {
+        await _addFireSymbol(fire, i);
+      } catch (e) {
+        _logger.e('Failed to add fire symbol: $e');
+      }
     }
   }
 
@@ -245,8 +254,15 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       final bytes = data.buffer.asUint8List();
       await _c.addImage('map_fire_icon', bytes);
       _iconRegistered = true;
-    } catch (_) {
-      // If it fails, we fall back to text-only symbols
+      _logger.i('Fire icon registered successfully');
+    } catch (e) {
+      // If it fails, we fall back to text-only symbols (except on web)
+      _logger.w('Failed to register fire icon: $e');
+      if (kIsWeb) {
+        // On web, we'll use a simple colored circle instead of text
+        _iconRegistered = false;
+        _logger.i('Using web fallback (marker icon)');
+      }
     }
   }
 
@@ -255,17 +271,25 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     if (_symbolById.containsKey(key)) {
       return;
     }
-    final symbol = await _c.addSymbol(
-      m.SymbolOptions(
-        geometry: m.LatLng(fire.lat, fire.lon),
-        iconImage: _iconRegistered ? 'map_fire_icon' : null,
-        iconSize: 1.0,
-        textField: _iconRegistered ? null : '🔥',
-        textSize: _iconRegistered ? 0 : 16.0,
-        textHaloColor: _iconRegistered ? null : '#FFFFFF',
-        textHaloWidth: _iconRegistered ? 0 : 2.0,
-      ),
+
+    // Create symbol options with conditional text properties
+    final symbolOptions = m.SymbolOptions(
+      geometry: m.LatLng(fire.lat, fire.lon),
+      iconImage: _iconRegistered ? 'map_fire_icon' : null,
+      iconSize: (!_iconRegistered) ? 0.8 : 1.0,
+      textField: (!_iconRegistered) ? '🔥' : null,
+      textSize: (!_iconRegistered) ? 16.0 : 0,
+      textHaloColor: (!_iconRegistered) ? '#FFFFFF' : null,
+      textHaloWidth: (!_iconRegistered) ? 2.0 : 0,
+      // For web fallback, use a simple colored circle
+      iconColor: (!_iconRegistered) ? '#FF4444' : null,
     );
+
+    _logger.d(
+      'Adding fire symbol with options: iconImage=${symbolOptions.iconImage}, textField=${symbolOptions.textField}',
+    );
+
+    final symbol = await _c.addSymbol(symbolOptions);
 
     _symbolById[key] = symbol;
     _featureBySymbolId[symbol.id] = fire;
