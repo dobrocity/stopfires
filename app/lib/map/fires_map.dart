@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as m;
 import 'package:stopfires/providers/firms_provider.dart';
 import 'package:stopfires/providers/firms_service.dart';
@@ -15,7 +16,7 @@ class FiresMapPage extends ConsumerStatefulWidget {
 
 class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   late m.MapLibreMapController _c;
-
+  final Logger _logger = Logger();
   // UI / state
   final _symbolById = <String, m.Symbol>{};
   final _featureBySymbolId = <String, FirePoint>{};
@@ -212,6 +213,18 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   // --- Rendering symbols from state ---
 
   Future<void> _rebuildFireSymbols() async {
+    // Remove previous “fire-” symbols only
+    for (final entry in _symbolById.entries.toList()) {
+      if (entry.key.startsWith('fire-')) {
+        try {
+          await _c.removeSymbol(entry.value);
+        } catch (e) {
+          _logger.e('Failed to remove symbol: $e');
+        }
+        _symbolById.remove(entry.key);
+        _featureBySymbolId.remove(entry.value.id);
+      }
+    }
     // Optionally register a custom icon once (not required here)
     await _ensureIconRegistered();
 
