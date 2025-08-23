@@ -5,6 +5,10 @@ String getProjectID() {
   return "pro-8309560514880320811";
 }
 
+String getMapTilerApiKey() {
+  return "CVD1omqGoPVBYlsd5cTd";
+}
+
 extension L10nX on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this)!;
 }
