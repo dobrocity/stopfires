@@ -63,7 +63,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             initialCameraPosition: const m.CameraPosition(
               target: m.LatLng(42.0814621, 19.0822514),
               zoom: 10,
-              tilt: 80,
+              tilt: 60,
             ),
             onMapCreated: (c) async {
               _c = c;
