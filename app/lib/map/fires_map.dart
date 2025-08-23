@@ -43,6 +43,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   List<FirePoint> _fires = [];
   List<FireCluster> _clusters = [];
   bool _layersAdded = false;
+  bool _mapReady = false;
 
   Timer? _debounce;
   m.CameraPosition? _lastCameraPosition;
@@ -51,6 +52,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _clearAllLayers();
     super.dispose();
   }
 
@@ -83,11 +85,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             ),
             onMapCreated: (c) async {
               _c = c;
+              _mapReady = false; // Reset map ready state
+              _layersAdded = false; // Reset layers state
               _logger.i('Map created successfully');
             },
 
             onStyleLoadedCallback: () {
               _logger.i('Map style loaded successfully');
+              _mapReady = true;
               _refreshFromVisibleRegion();
             },
             onCameraIdle: () {
@@ -216,7 +221,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         _fires = fires; // <- saved in state
       });
 
-      await _rebuildFireLayers();
+      // Only rebuild layers if map is ready
+      if (_c != null && _mapReady) {
+        await _rebuildFireLayers();
+      } else {
+        _logger.w(
+          'Map not ready (controller: ${_c != null}, loaded: $_mapReady), deferring layer rebuild',
+        );
+      }
     } catch (e) {
       setState(() {
         _error = 'Failed to load fires: $e';
@@ -231,14 +243,32 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   // --- Rendering fire layers from state ---
 
   Future<void> _rebuildFireLayers() async {
+    // Ensure map controller is ready and map is loaded
+    if (_c == null || !_mapReady) {
+      _logger.w(
+        'Map not ready (controller: ${_c != null}, loaded: $_mapReady), skipping layer rebuild',
+      );
+      return;
+    }
+
     // Remove previous fire layers if they exist
     try {
       if (_layersAdded) {
-        await _c.removeLayer('fires-heat');
-        await _c.removeLayer('fires-point');
-        await _c.removeLayer('fires-clusters');
-        await _c.removeSource('fires');
-        await _c.removeSource('clusters');
+        // Remove layers first, then sources
+        final layersToRemove = ['fires-heat', 'fires-point', 'fires-clusters'];
+        final sourcesToRemove = ['fires', 'clusters'];
+
+        for (final layerId in layersToRemove) {
+          await _safeRemoveLayer(layerId);
+        }
+
+        for (final sourceId in sourcesToRemove) {
+          await _safeRemoveSource(sourceId);
+        }
+
+        // Small delay to ensure sources are fully removed
+        await Future.delayed(const Duration(milliseconds: 100));
+
         _layersAdded = false;
       }
     } catch (e) {
@@ -294,8 +324,91 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     final geojson = {'type': 'FeatureCollection', 'features': features};
 
     try {
+      // Safely remove source if it exists
+      await _safeRemoveSource('fires');
+
+      // Small delay to ensure source is fully removed
+      await Future.delayed(const Duration(milliseconds: 50));
+
       // Add GeoJSON source - pass the object directly, not the JSON string
       await _c.addSource('fires', m.GeojsonSourceProperties(data: geojson));
+
+      // Add large circle layer for heatmap effect (low zoom levels)
+      await _c.addLayer(
+        'fires',
+        'fires-heat',
+        m.CircleLayerProperties(
+          circleRadius: [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0,
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'weight'],
+              0,
+              4,
+              1,
+              10,
+            ],
+            9,
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'weight'],
+              0,
+              8,
+              1,
+              20,
+            ],
+          ],
+          circleColor: [
+            'interpolate',
+            ['linear'],
+            ['get', 'weight'],
+            0,
+            'rgba(255,200,200,0.3)',
+            0.2,
+            'rgba(255,150,150,0.4)',
+            0.4,
+            'rgba(255,100,100,0.5)',
+            0.6,
+            'rgba(255,50,50,0.6)',
+            0.8,
+            'rgba(220,20,20,0.7)',
+            1,
+            'rgba(178,24,43,0.8)',
+          ],
+          circleStrokeColor: [
+            'interpolate',
+            ['linear'],
+            ['get', 'weight'],
+            0,
+            'rgba(255,200,200,0.8)',
+            0.2,
+            'rgba(255,150,150,0.8)',
+            0.4,
+            'rgba(255,100,100,0.8)',
+            0.6,
+            'rgba(255,50,50,0.8)',
+            0.8,
+            'rgba(220,20,20,0.8)',
+            1,
+            'rgba(178,24,43,0.8)',
+          ],
+          circleStrokeWidth: 1,
+          circleOpacity: [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0,
+            1,
+            9,
+            0.3,
+          ],
+        ),
+      );
 
       // Add smaller circle layer for higher zoom levels (point representation)
       await _c.addLayer(
@@ -306,15 +419,15 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             'interpolate',
             ['linear'],
             ['zoom'],
-            7,
+            12,
             [
               'interpolate',
               ['linear'],
               ['get', 'weight'],
               0,
-              3,
+              2,
               1,
-              8,
+              5,
             ],
             16,
             [
@@ -322,9 +435,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               ['linear'],
               ['get', 'weight'],
               0,
-              6,
+              4,
               1,
-              16,
+              10,
             ],
           ],
           circleColor: [
@@ -350,9 +463,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             'interpolate',
             ['linear'],
             ['zoom'],
-            7,
+            12,
             0,
-            8,
+            13,
             1,
           ],
         ),
@@ -388,6 +501,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       });
     } catch (e) {
       _logger.e('Failed to add fire layers: $e');
+      _logger.e('Stack trace: ${StackTrace.current}');
       setState(() {
         _error = 'Failed to render fire layers: $e';
       });
@@ -745,6 +859,14 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
   /// Add cluster layers to the map
   Future<void> _addClusterLayers() async {
+    // Ensure map controller is ready and map is loaded
+    if (_c == null || !_mapReady) {
+      _logger.w(
+        'Map not ready (controller: ${_c != null}, loaded: $_mapReady), skipping cluster layer addition',
+      );
+      return;
+    }
+
     try {
       // Create GeoJSON for clusters
       final clusterFeatures = <Map<String, dynamic>>[];
@@ -778,6 +900,12 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
           'type': 'FeatureCollection',
           'features': clusterFeatures,
         };
+
+        // Safely remove cluster source if it exists
+        await _safeRemoveSource('clusters');
+
+        // Small delay to ensure source is fully removed
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Add cluster source
         await _c.addSource(
@@ -834,6 +962,51 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       }
     } catch (e) {
       _logger.e('Failed to add cluster layers: $e');
+    }
+  }
+
+  /// Safely remove a source if it exists
+  Future<void> _safeRemoveSource(String sourceId) async {
+    try {
+      await _c.removeSource(sourceId);
+      _logger.d('Successfully removed source: $sourceId');
+    } catch (e) {
+      // Source doesn't exist, which is fine
+      _logger.d('Source $sourceId does not exist: $e');
+    }
+  }
+
+  /// Safely remove a layer if it exists
+  Future<void> _safeRemoveLayer(String layerId) async {
+    try {
+      await _c.removeLayer(layerId);
+      _logger.d('Successfully removed layer: $layerId');
+    } catch (e) {
+      // Layer doesn't exist, which is fine
+      _logger.d('Layer $layerId does not exist: $e');
+    }
+  }
+
+  /// Clear all layers and sources safely
+  Future<void> _clearAllLayers() async {
+    if (_c == null) return;
+
+    try {
+      final layersToRemove = ['fires-heat', 'fires-point', 'fires-clusters'];
+      final sourcesToRemove = ['fires', 'clusters'];
+
+      for (final layerId in layersToRemove) {
+        await _safeRemoveLayer(layerId);
+      }
+
+      for (final sourceId in sourcesToRemove) {
+        await _safeRemoveSource(sourceId);
+      }
+
+      _layersAdded = false;
+      _logger.i('All layers and sources cleared');
+    } catch (e) {
+      _logger.e('Error clearing layers: $e');
     }
   }
 
