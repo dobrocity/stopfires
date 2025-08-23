@@ -568,6 +568,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your exact location is only shared while you\'re actively using the app. You can disable location sharing at any time in settings.'**
   String get location_sharing_disclaimer_privacy;
+
+  /// No description provided for @i_have_read_and_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept the '**
+  String get i_have_read_and_accept;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

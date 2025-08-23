@@ -252,4 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get location_sharing_disclaimer_privacy => 'Your exact location is only shared while you\'re actively using the app. You can disable location sharing at any time in settings.';
+
+  @override
+  String get i_have_read_and_accept => 'I have read and accept the ';
 }

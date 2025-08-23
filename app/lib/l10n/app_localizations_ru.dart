@@ -252,4 +252,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get location_sharing_disclaimer_privacy => 'Ваше точное местоположение передается только во время активного использования приложения. Вы можете отключить передачу местоположения в любое время в настройках.';
+
+  @override
+  String get i_have_read_and_accept => 'Я прочитал и принимаю ';
 }

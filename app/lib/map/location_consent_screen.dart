@@ -44,6 +44,8 @@ class LocationConsentScreen extends StatefulWidget {
 
 class _LocationConsentScreenState extends State<LocationConsentScreen> {
   bool _acknowledgeSharing = false; // acknowledge location sharing disclaimer
+  bool _privacyAccepted = false; // privacy policy accepted
+  bool _termsAccepted = false; // terms of service accepted
 
   Future<void> _open(Uri url) async {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -59,7 +61,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final canAccept = _acknowledgeSharing;
+    final canAccept = _acknowledgeSharing && _privacyAccepted && _termsAccepted;
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title ?? l10n.location_consent_title)),
@@ -133,22 +135,96 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
             // Legal
             _Section(
               title: l10n.legal,
-              child: Wrap(
-                spacing: 12,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton.icon(
-                    onPressed: () => _open(
-                      Uri.parse('https://stopfires.org/privacy_policy'),
-                    ),
-                    icon: const Icon(Icons.privacy_tip_outlined),
-                    label: Text(l10n.privacy_policy),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CheckboxListTile(
+                          value: _privacyAccepted,
+                          onChanged: (v) =>
+                              setState(() => _privacyAccepted = v ?? false),
+                          title: Wrap(
+                            children: [
+                              Text(
+                                l10n.i_have_read_and_accept,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => _open(
+                                  Uri.parse(
+                                    'https://stopfires.org/privacy_policy',
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  l10n.privacy_policy,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.colorScheme.primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
                   ),
-                  TextButton.icon(
-                    onPressed: () => _open(
-                      Uri.parse('https://stopfires.org/terms_of_service'),
-                    ),
-                    icon: const Icon(Icons.description_outlined),
-                    label: Text(l10n.terms_of_service),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CheckboxListTile(
+                          value: _termsAccepted,
+                          onChanged: (v) =>
+                              setState(() => _termsAccepted = v ?? false),
+                          title: Wrap(
+                            children: [
+                              Text(
+                                l10n.i_have_read_and_accept,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => _open(
+                                  Uri.parse(
+                                    'https://stopfires.org/terms_of_service',
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  l10n.terms_of_service,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.colorScheme.primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

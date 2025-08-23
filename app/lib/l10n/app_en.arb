@@ -179,5 +179,7 @@
   "location_sharing_disclaimer_acknowledge": "I understand that my location will be visible to other users",
   "@location_sharing_disclaimer_acknowledge": {},
   "location_sharing_disclaimer_privacy": "Your exact location is only shared while you're actively using the app. You can disable location sharing at any time in settings.",
-  "@location_sharing_disclaimer_privacy": {}
+  "@location_sharing_disclaimer_privacy": {},
+  "i_have_read_and_accept": "I have read and accept the ",
+  "@i_have_read_and_accept": {}
 }

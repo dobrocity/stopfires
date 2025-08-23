@@ -179,5 +179,7 @@
   "location_sharing_disclaimer_acknowledge": "Я понимаю, что мое местоположение будет видимым для других пользователей",
   "@location_sharing_disclaimer_acknowledge": {},
   "location_sharing_disclaimer_privacy": "Ваше точное местоположение передается только во время активного использования приложения. Вы можете отключить передачу местоположения в любое время в настройках.",
-  "@location_sharing_disclaimer_privacy": {}
+  "@location_sharing_disclaimer_privacy": {},
+  "i_have_read_and_accept": "Я прочитал и принимаю ",
+  "@i_have_read_and_accept": {}
 }
