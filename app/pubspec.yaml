@@ -55,9 +55,7 @@ dependencies:
   http: any
   geolocator: ^14.0.2
   url_launcher: ^6.3.2
-  maplibre_gl:
-    path: ../../flutter-maplibre-gl/maplibre_gl
-
+  maplibre_gl: ^0.22.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -71,13 +69,6 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
-# Dependency overrides for local development
-dependency_overrides:
-  maplibre_gl_platform_interface:
-    path: ../../flutter-maplibre-gl/maplibre_gl_platform_interface
-  maplibre_gl_web:
-    path: ../../flutter-maplibre-gl/maplibre_gl_web
 
 # The following section is specific to Flutter packages.
 flutter:
