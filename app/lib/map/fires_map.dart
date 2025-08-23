@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,7 +56,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       body: Stack(
         children: [
           m.MapLibreMap(
-            styleString: "assets/styles/style-default.json",
+            styleString: kIsWeb
+                ? '/assets/assets/styles/style-default.json'
+                : "assets/styles/style-default.json",
             trackCameraPosition: true,
             initialCameraPosition: const m.CameraPosition(
               target: m.LatLng(42.0814621, 19.0822514),
