@@ -154,6 +154,8 @@
   "@privacy": {},
   "settings": "Настройки",
   "@settings": {},
+  "legal": "Правовая информация",
+  "@legal": {},
   "privacy_policy": "Политика конфиденциальности",
   "@privacy_policy": {},
   "terms_of_service": "Условия использования",

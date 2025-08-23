@@ -215,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get legal => 'Legal';
+
+  @override
   String get privacy_policy => 'Privacy Policy';
 
   @override

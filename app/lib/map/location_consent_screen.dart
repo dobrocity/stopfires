@@ -10,10 +10,8 @@ class LocationConsentScreen extends StatefulWidget {
   final String? title;
 
   /// Your privacy policy URL (required for stores + trust).
-  final Uri? privacyPolicyUrl;
 
   /// Optional terms of service URL.
-  final Uri? termsUrl;
 
   /// Human-readable org/app name shown in the copy.
   final String? appName;
@@ -34,9 +32,7 @@ class LocationConsentScreen extends StatefulWidget {
     super.key,
     this.title,
     this.appName,
-    this.privacyPolicyUrl,
     this.onDecline,
-    this.termsUrl,
     this.defaultRetentionDays = 30,
     this.hideBackgroundOption = false,
     this.hideApproximateToggle = false,
@@ -136,22 +132,24 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
 
             // Legal
             _Section(
-              title: l10n.privacy,
+              title: l10n.legal,
               child: Wrap(
                 spacing: 12,
                 children: [
-                  if (widget.privacyPolicyUrl != null)
-                    TextButton.icon(
-                      onPressed: () => _open(widget.privacyPolicyUrl!),
-                      icon: const Icon(Icons.privacy_tip_outlined),
-                      label: Text(l10n.privacy_policy),
+                  TextButton.icon(
+                    onPressed: () => _open(
+                      Uri.parse('https://stopfires.org/privacy_policy'),
                     ),
-                  if (widget.termsUrl != null)
-                    TextButton.icon(
-                      onPressed: () => _open(widget.termsUrl!),
-                      icon: const Icon(Icons.description_outlined),
-                      label: Text(l10n.terms_of_service),
+                    icon: const Icon(Icons.privacy_tip_outlined),
+                    label: Text(l10n.privacy_policy),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _open(
+                      Uri.parse('https://stopfires.org/terms_of_service'),
                     ),
+                    icon: const Icon(Icons.description_outlined),
+                    label: Text(l10n.terms_of_service),
+                  ),
                 ],
               ),
             ),

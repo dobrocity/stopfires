@@ -215,6 +215,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settings => 'Настройки';
 
   @override
+  String get legal => 'Правовая информация';
+
+  @override
   String get privacy_policy => 'Политика конфиденциальности';
 
   @override
