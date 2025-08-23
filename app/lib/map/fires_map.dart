@@ -258,7 +258,8 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       ),
     );
 
-    final key = 'fire-$index';
+    final key =
+        'fire-${fire.lat.toString()}-${fire.lon.toString())}';
     _symbolById[key] = symbol;
     _featureBySymbolId[symbol.id] = fire;
   }
