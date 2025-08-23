@@ -212,17 +212,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   // --- Rendering symbols from state ---
 
   Future<void> _rebuildFireSymbols() async {
-    // Remove previous “fire-” symbols only
-    for (final entry in _symbolById.entries.toList()) {
-      if (entry.key.startsWith('fire-')) {
-        try {
-          await _c.removeSymbol(entry.value);
-        } catch (_) {}
-        _symbolById.remove(entry.key);
-        _featureBySymbolId.remove(entry.value.id);
-      }
-    }
-
     // Optionally register a custom icon once (not required here)
     await _ensureIconRegistered();
 
@@ -246,6 +235,10 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   }
 
   Future<void> _addFireSymbol(FirePoint fire, int index) async {
+    final key = 'fire-${fire.lat.toString()}-${fire.lon.toString()}';
+    if (_symbolById.containsKey(key)) {
+      return;
+    }
     final symbol = await _c.addSymbol(
       m.SymbolOptions(
         geometry: m.LatLng(fire.lat, fire.lon),
@@ -258,8 +251,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       ),
     );
 
-    final key =
-        'fire-${fire.lat.toString()}-${fire.lon.toString())}';
     _symbolById[key] = symbol;
     _featureBySymbolId[symbol.id] = fire;
   }
