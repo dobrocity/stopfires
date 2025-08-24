@@ -8,6 +8,7 @@ import 'package:stopfires/providers/firms_provider.dart';
 import 'package:stopfires/providers/firms_service.dart';
 import 'package:stopfires/map/cluster_helper.dart';
 import 'package:stopfires/providers/geolocation_provider.dart';
+import 'package:stopfires/providers/other_users_provider.dart';
 import 'package:geolocator/geolocator.dart';
 
 class FiresMapPage extends ConsumerStatefulWidget {
@@ -30,6 +31,12 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   bool _layersAdded = false;
   bool _mapReady = false;
 
+  // Other users tracking
+  List<OtherUserLocation> _otherUsersInViewport = [];
+  List<m.Circle> _otherUserMarkers = [];
+  StreamSubscription<Map<String, OtherUserLocation>>?
+  _otherUsersStreamSubscription;
+
   // Location tracking
   StreamSubscription<Position?>? _locationSubscription;
   Position? _currentPosition;
@@ -43,12 +50,25 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   void initState() {
     super.initState();
     _setupLocationListener();
+    _setupOtherUsersStream();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
     _locationSubscription?.cancel();
+    _otherUsersStreamSubscription?.cancel();
+
+    // Clean up other user markers
+    for (final marker in _otherUserMarkers) {
+      try {
+        _c.removeCircle(marker);
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+    }
+    _otherUserMarkers.clear();
+
     super.dispose();
   }
 
@@ -95,6 +115,9 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               if (_currentPosition != null) {
                 _updateCurrentLocationMarker(_currentPosition!);
               }
+
+              // Initialize other users in the current viewport
+              _updateOtherUsersInViewport();
             },
             onCameraIdle: () {
               final currentPosition = _c.cameraPosition;
@@ -116,6 +139,8 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                           )) {
                         _lastCameraPosition = currentPosition;
                         await _refreshFromVisibleRegion();
+                        // Also update other users in the new viewport
+                        await _updateOtherUsersOnViewportChange();
                       }
                     }
                   } catch (e) {
@@ -254,6 +279,126 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       if (mounted) {
         setState(() => _loading = false);
       }
+    }
+  }
+
+  /// Update other users in the current viewport when camera changes
+  Future<void> _updateOtherUsersInViewport() async {
+    try {
+      final bounds = await _c.getVisibleRegion();
+
+      // Get other users in the current bounding box
+      final bbox = {
+        'minLat': bounds.southwest.latitude,
+        'maxLat': bounds.northeast.latitude,
+        'minLng': bounds.southwest.longitude,
+        'maxLng': bounds.northeast.longitude,
+      };
+
+      // Use the otherUsersInBBoxProvider to get users in viewport
+      final otherUsers = ref.read(otherUsersInBBoxProvider(bbox));
+
+      setState(() {
+        _otherUsersInViewport = otherUsers;
+      });
+
+      // Update other user markers on the map
+      if (_mapReady) {
+        await _updateOtherUserMarkers();
+      }
+    } catch (e) {
+      _logger.e('Failed to update other users in viewport: $e');
+    }
+  }
+
+  /// Update other users when viewport changes (called from camera idle)
+  Future<void> _updateOtherUsersOnViewportChange() async {
+    try {
+      final bounds = await _c.getVisibleRegion();
+
+      // Get other users in the current bounding box
+      final bbox = {
+        'minLat': bounds.southwest.latitude,
+        'maxLat': bounds.northeast.latitude,
+        'minLng': bounds.southwest.longitude,
+        'maxLng': bounds.northeast.longitude,
+      };
+
+      // Use the otherUsersInBBoxProvider to get users in viewport
+      final otherUsers = ref.read(otherUsersInBBoxProvider(bbox));
+
+      setState(() {
+        _otherUsersInViewport = otherUsers;
+      });
+
+      // Update other user markers on the map
+      if (_mapReady) {
+        await _updateOtherUserMarkers();
+      }
+    } catch (e) {
+      _logger.e('Failed to update other users on viewport change: $e');
+    }
+  }
+
+  /// Update other user markers on the map
+  Future<void> _updateOtherUserMarkers() async {
+    try {
+      // Create a map of existing markers by user ID for efficient updates
+      final existingMarkers = <String, m.Circle>{};
+      for (int i = 0; i < _otherUserMarkers.length; i++) {
+        if (i < _otherUsersInViewport.length) {
+          existingMarkers[_otherUsersInViewport[i].uid] = _otherUserMarkers[i];
+        }
+      }
+
+      // Clear the markers list to rebuild it
+      _otherUserMarkers.clear();
+
+      // Update or add markers for users in viewport
+      for (final user in _otherUsersInViewport) {
+        try {
+          if (existingMarkers.containsKey(user.uid)) {
+            // Update existing marker position
+            final existingMarker = existingMarkers[user.uid]!;
+            await _c.updateCircle(
+              existingMarker,
+              m.CircleOptions(
+                geometry: m.LatLng(user.latitude, user.longitude),
+              ),
+            );
+            _otherUserMarkers.add(existingMarker);
+            existingMarkers.remove(user.uid); // Mark as used
+          } else {
+            // Add new marker
+            final circle = await _c.addCircle(
+              m.CircleOptions(
+                geometry: m.LatLng(user.latitude, user.longitude),
+                circleRadius: 6.0,
+                circleColor: "#4CAF50", // Green color for other users
+                circleStrokeColor: "#FFFFFF", // White border
+                circleStrokeWidth: 2.0,
+                circleOpacity: 0.8,
+              ),
+            );
+            _otherUserMarkers.add(circle);
+          }
+        } catch (e) {
+          _logger.e('Failed to update/add marker for user ${user.uid}: $e');
+        }
+      }
+
+      // Remove markers for users no longer in viewport
+      for (final marker in existingMarkers.values) {
+        try {
+          await _c.removeCircle(marker);
+        } catch (e) {
+          _logger.e('Failed to remove marker: $e');
+        }
+      }
+
+      _logger.d('Updated ${_otherUserMarkers.length} other user markers');
+    } catch (e) {
+      _logger.e('Failed to update other user markers: $e');
     }
   }
 
@@ -690,6 +835,52 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             _logger.e('Location stream error: $error');
           },
         );
+  }
+
+  /// Set up stream subscription for other users updates
+  void _setupOtherUsersStream() {
+    _otherUsersStreamSubscription = ref
+        .read(otherUsersStreamProvider.stream)
+        .listen(
+          (allUsers) {
+            if (mounted) {
+              // Filter users to only those in the current viewport
+              _filterAndUpdateOtherUsers(allUsers);
+            }
+          },
+          onError: (error) {
+            _logger.e('Other users stream error: $error');
+          },
+        );
+  }
+
+  /// Filter users to current viewport and update markers
+  void _filterAndUpdateOtherUsers(Map<String, OtherUserLocation> allUsers) {
+    if (!_mapReady) return;
+
+    try {
+      // Get current viewport bounds
+      _c.getVisibleRegion().then((bounds) {
+        final bbox = {
+          'minLat': bounds.southwest.latitude,
+          'maxLat': bounds.northeast.latitude,
+          'minLng': bounds.southwest.longitude,
+          'maxLng': bounds.northeast.longitude,
+        };
+
+        // Filter users to current viewport
+        final usersInViewport = ref.read(otherUsersInBBoxProvider(bbox));
+
+        setState(() {
+          _otherUsersInViewport = usersInViewport;
+        });
+
+        // Update markers on the map
+        _updateOtherUserMarkers();
+      });
+    } catch (e) {
+      _logger.e('Failed to filter other users to viewport: $e');
+    }
   }
 
   Future<void> _updateCurrentLocationMarker(Position position) async {
