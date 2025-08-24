@@ -1265,28 +1265,6 @@ double _signedArea(List<List<double>> ring) {
   return 0.5 * s;
 }
 
-List<List<double>> _ensureOrientation(
-  List<List<double>> ring, {
-  required bool clockwise,
-}) {
-  if (ring.length < 3) return ring;
-  final area = _signedArea(ring);
-  final isCW = area < 0;
-  if (clockwise && !isCW) return ring.reversed.toList();
-  if (!clockwise && isCW) return ring.reversed.toList();
-  return ring;
-}
-
-List<List<double>> _closeRing(List<List<double>> ring) {
-  if (ring.isEmpty) return ring;
-  return _same(ring.first, ring.last)
-      ? ring
-      : [
-          ...ring,
-          [ring.first[0], ring.first[1]],
-        ];
-}
-
 // 3) convex hull in lon/lat (returns open ring)
 List<List<double>> _convexHullLonLat(List<List<double>> pts) {
   if (pts.length <= 2) return pts;
