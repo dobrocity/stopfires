@@ -574,6 +574,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I have read and accept the '**
   String get i_have_read_and_accept;
+
+  /// No description provided for @location_services_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are disabled. Please enable them in your device settings.'**
+  String get location_services_disabled;
+
+  /// No description provided for @location_permission_denied_forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is permanently denied. Please enable it in your device settings.'**
+  String get location_permission_denied_forever;
+
+  /// No description provided for @location_permission_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission was denied.'**
+  String get location_permission_denied;
+
+  /// No description provided for @location_permission_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error requesting location permission'**
+  String get location_permission_error;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

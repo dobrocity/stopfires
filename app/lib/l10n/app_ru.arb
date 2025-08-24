@@ -181,5 +181,12 @@
   "location_sharing_disclaimer_privacy": "Ваше точное местоположение передается только во время активного использования приложения. Вы можете отключить передачу местоположения в любое время в настройках.",
   "@location_sharing_disclaimer_privacy": {},
   "i_have_read_and_accept": "Я прочитал и принимаю ",
-  "@i_have_read_and_accept": {}
+  "@i_have_read_and_accept": {},
+  "location_services_disabled": "Службы геолокации отключены. Пожалуйста, включите их в настройках устройства.",
+  "@location_services_disabled": {},
+  "location_permission_denied_forever": "Разрешение на геолокацию навсегда отклонено. Пожалуйста, включите его в настройках устройства.",
+  "@location_permission_denied_forever": {},
+  "location_permission_denied": "Разрешение на геолокацию было отклонено.",
+  "@location_permission_denied": {},
+  "location_permission_error": "Ошибка при запросе разрешения на геолокацию"
 }

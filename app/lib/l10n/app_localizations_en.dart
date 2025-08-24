@@ -255,4 +255,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get i_have_read_and_accept => 'I have read and accept the ';
+
+  @override
+  String get location_services_disabled => 'Location services are disabled. Please enable them in your device settings.';
+
+  @override
+  String get location_permission_denied_forever => 'Location permission is permanently denied. Please enable it in your device settings.';
+
+  @override
+  String get location_permission_denied => 'Location permission was denied.';
+
+  @override
+  String get location_permission_error => 'Error requesting location permission';
 }

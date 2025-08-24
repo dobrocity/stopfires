@@ -181,5 +181,12 @@
   "location_sharing_disclaimer_privacy": "Your exact location is only shared while you're actively using the app. You can disable location sharing at any time in settings.",
   "@location_sharing_disclaimer_privacy": {},
   "i_have_read_and_accept": "I have read and accept the ",
-  "@i_have_read_and_accept": {}
+  "@i_have_read_and_accept": {},
+  "location_services_disabled": "Location services are disabled. Please enable them in your device settings.",
+  "@location_services_disabled": {},
+  "location_permission_denied_forever": "Location permission is permanently denied. Please enable it in your device settings.",
+  "@location_permission_denied_forever": {},
+  "location_permission_denied": "Location permission was denied.",
+  "@location_permission_denied": {},
+  "location_permission_error": "Error requesting location permission"
 }

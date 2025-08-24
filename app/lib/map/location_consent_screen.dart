@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stopfires/config.dart';
 import 'package:stopfires/router.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -46,6 +47,7 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
   bool _acknowledgeSharing = false; // acknowledge location sharing disclaimer
   bool _privacyAccepted = false; // privacy policy accepted
   bool _termsAccepted = false; // terms of service accepted
+  bool _isRequestingPermission = false; // track permission request state
 
   Future<void> _open(Uri url) async {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -53,6 +55,74 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.could_not_open_link)),
         );
+      }
+    }
+  }
+
+  Future<void> _requestLocationPermission() async {
+    if (_isRequestingPermission) return;
+
+    setState(() {
+      _isRequestingPermission = true;
+    });
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.location_services_disabled)),
+          );
+        }
+        return;
+      }
+
+      // Check current permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        // Request permission
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.location_permission_denied_forever),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.location_permission_denied)),
+          );
+        }
+        return;
+      }
+
+      // Permission granted, navigate to the map
+      if (mounted) {
+        context.push(Routes.sharedMap);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${context.l10n.location_permission_error}: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRequestingPermission = false;
+        });
       }
     }
   }
@@ -242,11 +312,17 @@ class _LocationConsentScreenState extends State<LocationConsentScreen> {
                 Expanded(
                   child: FilledButton(
                     onPressed: canAccept
-                        ? () {
-                            context.push(Routes.sharedMap);
-                          }
+                        ? _isRequestingPermission
+                              ? null
+                              : _requestLocationPermission
                         : null,
-                    child: Text(l10n.accept_continue),
+                    child: _isRequestingPermission
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.accept_continue),
                   ),
                 ),
               ],

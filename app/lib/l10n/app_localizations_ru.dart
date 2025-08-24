@@ -255,4 +255,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get i_have_read_and_accept => 'Я прочитал и принимаю ';
+
+  @override
+  String get location_services_disabled => 'Службы геолокации отключены. Пожалуйста, включите их в настройках устройства.';
+
+  @override
+  String get location_permission_denied_forever => 'Разрешение на геолокацию навсегда отклонено. Пожалуйста, включите его в настройках устройства.';
+
+  @override
+  String get location_permission_denied => 'Разрешение на геолокацию было отклонено.';
+
+  @override
+  String get location_permission_error => 'Ошибка при запросе разрешения на геолокацию';
 }
