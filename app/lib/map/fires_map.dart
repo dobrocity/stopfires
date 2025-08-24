@@ -841,6 +841,34 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     );
   }
 
+  /// Set the initial map position to the user's current location
+  /// This is called when we first get a location from the location stream
+  void _setInitialPosition(Position position) {
+    if (!_mapReady) {
+      _logger.d('Map not ready yet, skipping initial position set');
+      return;
+    }
+
+    try {
+      _logger.d(
+        'Setting initial map position to user location: ${position.latitude}, ${position.longitude}',
+      );
+
+      // Animate camera to the user's current location with a reasonable zoom level
+      _c.animateCamera(
+        m.CameraUpdate.newCameraPosition(
+          m.CameraPosition(
+            target: m.LatLng(position.latitude, position.longitude),
+            zoom: 11.0, // Good zoom level for seeing local area
+            tilt: 45.0, // Moderate tilt for better perspective
+          ),
+        ),
+      );
+    } catch (e) {
+      _logger.e('Failed to set initial position: $e');
+    }
+  }
+
   // --- Location tracking methods ---
 
   void _setupLocationListener() {
@@ -851,7 +879,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             if (position != null && mounted) {
               // first time we get a position, update the current location marker
               if (_currentPosition == null) {
-                _updateCurrentLocationMarker(position);
+                _setInitialPosition(position);
               }
               setState(() {
                 _currentPosition = position;
