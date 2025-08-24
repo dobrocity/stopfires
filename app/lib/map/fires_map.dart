@@ -798,6 +798,8 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             'clusters',
             'fires-clusters',
             m.FillLayerProperties(fillColor: ['get', 'color']),
+            belowLayerId: 'fires-point',
+            enableInteraction: false,
           );
         }
 
