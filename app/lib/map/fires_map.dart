@@ -34,6 +34,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   // Other users tracking
   List<OtherUserLocation> _otherUsersInViewport = [];
   List<m.Circle> _otherUserMarkers = [];
+  Map<m.Circle, OtherUserLocation> _markerToUserMap = {};
   StreamSubscription<Map<String, OtherUserLocation>>?
   _otherUsersStreamSubscription;
 
@@ -68,6 +69,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       }
     }
     _otherUserMarkers.clear();
+    _markerToUserMap.clear();
 
     super.dispose();
   }
@@ -367,20 +369,30 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               ),
             );
             _otherUserMarkers.add(existingMarker);
+            _markerToUserMap[existingMarker] = user;
             existingMarkers.remove(user.uid); // Mark as used
           } else {
             // Add new marker
             final circle = await _c.addCircle(
               m.CircleOptions(
                 geometry: m.LatLng(user.latitude, user.longitude),
-                circleRadius: 6.0,
+                circleRadius: 10.0,
                 circleColor: "#4CAF50", // Green color for other users
                 circleStrokeColor: "#FFFFFF", // White border
                 circleStrokeWidth: 2.0,
                 circleOpacity: 0.8,
               ),
             );
+
+            // Add tap handler for the circle
+            _c.onCircleTapped.add((m.Circle tappedCircle) {
+              if (tappedCircle == circle) {
+                _showUserTooltip(user);
+              }
+            });
+
             _otherUserMarkers.add(circle);
+            _markerToUserMap[circle] = user;
           }
         } catch (e) {
           _logger.e('Failed to update/add marker for user ${user.uid}: $e');
@@ -391,6 +403,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       for (final marker in existingMarkers.values) {
         try {
           await _c.removeCircle(marker);
+          _markerToUserMap.remove(marker);
         } catch (e) {
           _logger.e('Failed to remove marker: $e');
         }
@@ -400,6 +413,19 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     } catch (e) {
       _logger.e('Failed to update other user markers: $e');
     }
+  }
+
+  // --- User tooltip methods ---
+
+  void _showUserTooltip(OtherUserLocation user) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('User ID: ${user.uid}'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   // --- Rendering fire layers from state ---
@@ -894,7 +920,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         _currentLocationCircle = await _c.addCircle(
           m.CircleOptions(
             geometry: ll,
-            circleRadius: 8.0,
+            circleRadius: 10.0,
             circleColor: "#4285F4", // blue dot
             circleStrokeColor: "#FFFFFF", // white ring
             circleStrokeWidth: 2.0,
