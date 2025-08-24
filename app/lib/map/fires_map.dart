@@ -849,6 +849,10 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         .listen(
           (position) {
             if (position != null && mounted) {
+              // first time we get a position, update the current location marker
+              if (_currentPosition == null) {
+                _updateCurrentLocationMarker(position);
+              }
               setState(() {
                 _currentPosition = position;
               });
