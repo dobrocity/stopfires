@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,7 +80,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
                 : "assets/styles/style-default.json",
             trackCameraPosition: true,
             initialCameraPosition: const m.CameraPosition(
-              target: m.LatLng(42.8339, 19.5261),
+              target: m.LatLng(42.3020, 18.8890),
               zoom: 11,
               tilt: 55,
             ),
@@ -96,6 +97,10 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               _refreshFromVisibleRegion();
             },
             onCameraIdle: () {
+              final currentPosition = _c.cameraPosition;
+              if (currentPosition != null) {
+                _logger.i('Zoom: ${currentPosition.zoom}');
+              }
               // Enhanced debouncing with position change detection
               _debounce?.cancel();
               _debounce = Timer(_debounceDelay, () async {
@@ -168,6 +173,18 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     final lonDiff = (oldPos.target.longitude - newPos.target.longitude).abs();
     final zoomDiff = (oldPos.zoom - newPos.zoom).abs();
 
+    // Zoom changes trigger cluster recalculation to show/hide clusters at zoom 12+
+    if (zoomDiff > minZoomChange) {
+      // Trigger cluster recalculation for zoom-based visibility
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted && _layersAdded) {
+          _createClusters();
+          // Rebuild cluster layers to show/hide based on new zoom level
+          await _addClusterLayers();
+        }
+      });
+    }
+
     return latDiff > minLatChange ||
         lonDiff > minLonChange ||
         zoomDiff > minZoomChange;
@@ -222,7 +239,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       });
 
       // Only rebuild layers if map is ready
-      if (_c != null && _mapReady) {
+      if (_mapReady) {
         await _rebuildFireLayers();
       } else {
         _logger.w(
@@ -244,7 +261,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
   Future<void> _rebuildFireLayers() async {
     // Ensure map controller is ready and map is loaded
-    if (_c == null || !_mapReady) {
+    if (!_mapReady) {
       _logger.w(
         'Map not ready (controller: ${_c != null}, loaded: $_mapReady), skipping layer rebuild',
       );
@@ -278,7 +295,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     if (_fires.isEmpty) return;
 
     // Create clusters first
-    _createClustersHTML();
+    _createClusters();
 
     // Create GeoJSON data from fire points with proper validation
     final features = <Map<String, dynamic>>[];
@@ -531,7 +548,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   }
 
   // --- Enhanced clustering algorithm matching the HTML version exactly ---
-  List<List<FirePoint>> _buildClustersHTML(
+  List<List<FirePoint>> _buildClusters(
     List<FirePoint> points,
     double distanceThreshold,
   ) {
@@ -567,8 +584,8 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     return clusters;
   }
 
-  // --- Create cluster polygons with exact HTML styling ---
-  void _createClustersHTML() {
+  // --- Create cluster polygons with static thresholds (only visible at zoom 12+) ---
+  void _createClusters() {
     if (!mounted) return;
 
     if (_fires.isEmpty) {
@@ -578,50 +595,63 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       return;
     }
 
+    // Check current zoom level - only show clusters at zoom 12 and higher
+    final currentZoom = _c.cameraPosition?.zoom ?? 0;
+    if (currentZoom < 12) {
+      if (mounted) {
+        setState(() => _clusters = []);
+      }
+      _logger.d('Zoom level $currentZoom < 12, hiding clusters');
+      return;
+    }
+
+    _logger.d('Zoom level $currentZoom >= 12, showing clusters');
+
     final List<FireCluster> allClusters = [];
 
-    // Use exact thresholds and styling from HTML version
+    // Always use original thresholds regardless of zoom level
     final List<double> thresholds = [
       1000,
       2000,
       3000,
       4000,
-    ]; // meters (1km, 2km, 3km, 4km)
+    ]; // 1km, 2km, 3km, 4km
+    final List<double> bufferRadii = [
+      500,
+      1000,
+      1500,
+      2000,
+    ]; // original buffers
+
     final List<Color> colors = [
       const Color(0xFFFF0000), // bright red (level 1)
       const Color(0xFFFF6666), // light red (level 2)
       const Color(0xFFFFA500), // orange (level 3)
       const Color(0xFFFFFF00), // yellow (level 4)
     ];
-    final List<double> opacities = [0.4, 0.3, 0.25, 0.2]; // HTML opacity values
-    final List<double> bufferRadii = [
-      500,
-      1000,
-      1500,
-      2000,
-    ]; // meters - exact HTML values
+    final List<double> opacities = [0.4, 0.3, 0.25, 0.2]; // opacity values
 
     _logger.d(
-      'Creating clusters for ${_fires.length} fires using HTML algorithm',
+      'Creating clusters for ${_fires.length} fires at zoom $currentZoom using static thresholds',
     );
-    _logger.d('Distance thresholds: $thresholds meters');
-    _logger.d('Buffer radii: $bufferRadii meters');
+    _logger.d('Distance thresholds: $thresholds meters (static)');
+    _logger.d('Buffer radii: $bufferRadii meters (static)');
 
-    // Create clusters at different distance thresholds using HTML algorithm
+    // Create clusters at different distance thresholds using static algorithm
     for (int i = 0; i < thresholds.length; i++) {
-      final clusterGroups = _buildClustersHTML(_fires, thresholds[i]);
+      final clusterGroups = _buildClusters(_fires, thresholds[i]);
       _logger.d(
         'Threshold ${thresholds[i]}m: created ${clusterGroups.length} cluster groups',
       );
 
-      for (final cluster in clusterGroups) {
+      for (final clusterGroup in clusterGroups) {
         _logger.d(
-          'Cluster ${clusterGroups.indexOf(cluster)}: ${cluster.length} points',
+          'Cluster ${clusterGroups.indexOf(clusterGroup)}: ${clusterGroup.length} points',
         );
 
-        final hull = _createBufferPolygon(cluster, bufferRadii[i]);
+        final hull = _createBufferPolygon(clusterGroup, bufferRadii[i]);
         _logger.d(
-          'Created buffer with ${hull.length} points for cluster of ${cluster.length} fires',
+          'Created buffer with ${hull.length} points for cluster of ${clusterGroup.length} fires',
         );
 
         final bufferRadius =
@@ -629,7 +659,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
         allClusters.add(
           FireCluster(
-            points: cluster,
+            points: clusterGroup,
             hull: hull,
             bufferRadius: bufferRadius,
             color: colors[i],
@@ -642,7 +672,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     if (mounted) {
       setState(() => _clusters = allClusters);
       _logger.i(
-        'Created ${allClusters.length} clusters from ${_fires.length} fires using HTML algorithm',
+        'Created ${allClusters.length} clusters from ${_fires.length} fires using static thresholds',
       );
     }
   }
@@ -787,49 +817,62 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     return _createConvexHull(bufferedPoints);
   }
 
-  // --- Create convex hull from points ---
-  List<m.LatLng> _createConvexHull(List<m.LatLng> points) {
-    if (points.length < 3) return points;
+  List<m.LatLng> _createConvexHull(List<m.LatLng> pts, {bool close = false}) {
+    if (pts.length < 3) return List<m.LatLng>.from(pts);
 
-    // Graham scan algorithm for convex hull
-    // Find the point with lowest y-coordinate (and leftmost if tied)
-    int lowest = 0;
-    for (int i = 1; i < points.length; i++) {
-      if (points[i].latitude < points[lowest].latitude ||
-          (points[i].latitude == points[lowest].latitude &&
-              points[i].longitude < points[lowest].longitude)) {
-        lowest = i;
+    // 1) pivot: lowest latitude, then leftmost longitude
+    int p0 = 0;
+    for (int i = 1; i < pts.length; i++) {
+      if (pts[i].latitude < pts[p0].latitude ||
+          (pts[i].latitude == pts[p0].latitude &&
+              pts[i].longitude < pts[p0].longitude)) {
+        p0 = i;
       }
     }
 
-    // Sort points by polar angle with respect to lowest point
-    final sortedPoints = List<m.LatLng>.from(points);
-    final lowestPoint = sortedPoints[lowest];
-    sortedPoints.removeAt(lowest);
+    final pivot = pts[p0];
+    final others = <m.LatLng>[];
+    for (int i = 0; i < pts.length; i++) {
+      if (i != p0) others.add(pts[i]);
+    }
 
-    sortedPoints.sort((a, b) {
-      final angleA = atan2(
-        a.latitude - lowestPoint.latitude,
-        a.longitude - lowestPoint.longitude,
-      );
-      final angleB = atan2(
-        b.latitude - lowestPoint.latitude,
-        b.longitude - lowestPoint.longitude,
-      );
-      return angleA.compareTo(angleB);
+    // 2) sort by polar angle, then by distance from pivot (ASC),
+    // so the farthest collinear point is processed LAST.
+    double angle(m.LatLng a) =>
+        math.atan2(a.latitude - pivot.latitude, a.longitude - pivot.longitude);
+    double dist2(m.LatLng a) {
+      final dx = a.longitude - pivot.longitude;
+      final dy = a.latitude - pivot.latitude;
+      return dx * dx + dy * dy;
+    }
+
+    others.sort((a, b) {
+      final da = angle(a), db = angle(b);
+      if (da != db) return da.compareTo(db);
+      return dist2(a).compareTo(dist2(b));
     });
 
-    // Build convex hull
-    final hull = <m.LatLng>[lowestPoint];
-    for (final point in sortedPoints) {
+    // 3) build hull (keep only left turns; drop inner collinears)
+    final hull = <m.LatLng>[pivot];
+    for (final p in others) {
       while (hull.length > 1 &&
-          _crossProduct(hull[hull.length - 2], hull.last, point) <= 0) {
+          _cross(hull[hull.length - 2], hull.last, p) <= 0) {
         hull.removeLast();
       }
-      hull.add(point);
+      hull.add(p);
     }
 
+    if (close && hull.isNotEmpty) hull.add(hull.first);
     return hull;
+  }
+
+  // z-component of cross(AB, AC); positive => left turn (CCW)
+  double _cross(m.LatLng a, m.LatLng b, m.LatLng c) {
+    final abx = b.longitude - a.longitude;
+    final aby = b.latitude - a.latitude;
+    final acx = c.longitude - a.longitude;
+    final acy = c.latitude - a.latitude;
+    return abx * acy - aby * acx;
   }
 
   // --- Calculate cross product for convex hull ---
@@ -860,7 +903,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   /// Add cluster layers to the map
   Future<void> _addClusterLayers() async {
     // Ensure map controller is ready and map is loaded
-    if (_c == null || !_mapReady) {
+    if (!_mapReady) {
       _logger.w(
         'Map not ready (controller: ${_c != null}, loaded: $_mapReady), skipping cluster layer addition',
       );
@@ -888,8 +931,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               'clusterId': _clusters.indexOf(cluster),
               'fireCount': cluster.points.length,
               'color':
-                  '#${cluster.color.toARGB32().toRadixString(16).substring(2)}',
-              'opacity': cluster.opacity,
+                  'rgba(${cluster.color.red}, ${cluster.color.green}, ${cluster.color.blue}, ${cluster.opacity})',
             },
           });
         }
@@ -917,45 +959,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         await _c.addLayer(
           'clusters',
           'fires-clusters',
-          m.FillLayerProperties(
-            fillColor: [
-              'case',
-              [
-                '==',
-                ['get', 'clusterId'],
-                0,
-              ],
-              'rgba(255, 0, 0, 0.4)',
-              [
-                '==',
-                ['get', 'clusterId'],
-                1,
-              ],
-              'rgba(255, 102, 102, 0.3)',
-              [
-                '==',
-                ['get', 'clusterId'],
-                2,
-              ],
-              'rgba(255, 165, 0, 0.25)',
-              [
-                '==',
-                ['get', 'clusterId'],
-                3,
-              ],
-              'rgba(255, 255, 0, 0.2)',
-              'rgba(255, 0, 0, 0.4)', // default
-            ],
-            fillOpacity: [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              0,
-              1,
-              9,
-              0.5,
-            ],
-          ),
+          m.FillLayerProperties(fillColor: ['get', 'color']),
         );
 
         _logger.i('Cluster layers added successfully');
@@ -989,8 +993,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
   /// Clear all layers and sources safely
   Future<void> _clearAllLayers() async {
-    if (_c == null) return;
-
     try {
       final layersToRemove = ['fires-heat', 'fires-point', 'fires-clusters'];
       final sourcesToRemove = ['fires', 'clusters'];
@@ -1036,56 +1038,39 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   // --- UI helpers ---
 
   void _showFireInfo(FirePoint fire) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Fire Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Location: ${fire.lat.toStringAsFixed(4)}, ${fire.lon.toStringAsFixed(4)}',
-            ),
-            Text('Time: ${fire.timeUtc.toLocal().toString().split('.').first}'),
-            Text('Sensor: ${fire.sensor.name.toUpperCase()}'),
-            if (fire.confidence != null)
-              Text('Confidence: ${fire.confidence}%'),
-          ],
+    // Animate camera to center on the fire point with 60-degree tilt
+    _c.animateCamera(
+      m.CameraUpdate.newCameraPosition(
+        m.CameraPosition(
+          target: m.LatLng(fire.lat, fire.lon),
+          zoom: 12.0, // Higher zoom for individual fire points
+          tilt: 60.0, // Apply 60-degree tilt as requested
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
 
   void _showClusterInfo(FireCluster cluster) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Fire Cluster Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Number of fires: ${cluster.points.length}'),
-            Text(
-              'Buffer radius: ${(cluster.bufferRadius * 111000).toStringAsFixed(0)}m',
-            ),
-            Text('Color: ${cluster.color.toString()}'),
-            Text('Opacity: ${cluster.opacity.toStringAsFixed(2)}'),
-          ],
+    // Calculate the center of the cluster by averaging all point coordinates
+    double totalLat = 0.0;
+    double totalLon = 0.0;
+
+    for (final point in cluster.points) {
+      totalLat += point.lat;
+      totalLon += point.lon;
+    }
+
+    final centerLat = totalLat / cluster.points.length;
+    final centerLon = totalLon / cluster.points.length;
+
+    // Animate camera to center the cluster with 60-degree tilt
+    _c.animateCamera(
+      m.CameraUpdate.newCameraPosition(
+        m.CameraPosition(
+          target: m.LatLng(centerLat, centerLon),
+          zoom: 12.0, // Adjust zoom level as needed
+          tilt: 60.0, // Apply 60-degree tilt as requested
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
