@@ -29,12 +29,13 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   List<FirePoint> _fires = [];
   List<FireCluster> _clusters = [];
   bool _layersAdded = false;
+  bool _clustersAdded = false;
   bool _mapReady = false;
 
   // Other users tracking
   List<OtherUserLocation> _otherUsersInViewport = [];
-  List<m.Circle> _otherUserMarkers = [];
-  Map<m.Circle, OtherUserLocation> _markerToUserMap = {};
+  final List<m.Circle> _otherUserMarkers = [];
+  final Map<m.Circle, OtherUserLocation> _markerToUserMap = {};
   StreamSubscription<Map<String, OtherUserLocation>>?
   _otherUsersStreamSubscription;
 
@@ -104,7 +105,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             onMapCreated: (c) async {
               _c = c;
               _mapReady = false; // Reset map ready state
-              _layersAdded = false; // Reset layers state
               _logger.i('Map created successfully');
             },
 
@@ -437,15 +437,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       return;
     }
 
-    // Remove previous fire layers if they exist
-    try {
-      if (_layersAdded) {
-        _layersAdded = false;
-      }
-    } catch (e) {
-      _logger.e('Failed to remove existing layers: $e');
-    }
-
     if (_fires.isEmpty) return;
 
     // Create clusters first
@@ -496,11 +487,20 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
     try {
       // Add GeoJSON source - pass the object directly, not the JSON string
-      final sourceIds = await _c.getSourceIds();
-      if (sourceIds.contains('fires')) {
+      bool firesSourceExists = false;
+      if (kIsWeb) {
+        // On web, use boolean flags instead of checking source IDs
+        firesSourceExists = _layersAdded;
+      } else {
+        final sourceIds = await _c.getSourceIds();
+        firesSourceExists = sourceIds.contains('fires');
+      }
+
+      if (firesSourceExists) {
         await _c.setGeoJsonSource('fires', geojson); // update data in place
       } else {
         await _c.addSource('fires', m.GeojsonSourceProperties(data: geojson));
+        _layersAdded = true;
       }
 
       // Add large circle layer for heatmap effect (low zoom levels)
@@ -652,7 +652,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         await _addClusterLayers();
       }
 
-      _layersAdded = true;
       _logger.i('Fire layers added successfully');
 
       // Add feature tap handler for the fire layers
@@ -773,8 +772,16 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         };
 
         // Add cluster source
-        final sourceIds = await _c.getSourceIds();
-        if (sourceIds.contains('clusters')) {
+        bool clustersSourceExists = false;
+        if (kIsWeb) {
+          // On web, use boolean flags instead of checking source IDs
+          clustersSourceExists = _clustersAdded;
+        } else {
+          final sourceIds = await _c.getSourceIds();
+          clustersSourceExists = sourceIds.contains('clusters');
+        }
+
+        if (clustersSourceExists) {
           await _c.setGeoJsonSource(
             'clusters',
             clusterGeojson,
@@ -784,6 +791,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
             'clusters',
             m.GeojsonSourceProperties(data: clusterGeojson),
           );
+          _clustersAdded = true;
         }
 
         // Add cluster fill layer
