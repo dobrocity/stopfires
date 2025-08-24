@@ -7,6 +7,8 @@ import 'package:maplibre_gl/maplibre_gl.dart' as m;
 import 'package:stopfires/providers/firms_provider.dart';
 import 'package:stopfires/providers/firms_service.dart';
 import 'package:stopfires/map/cluster_helper.dart';
+import 'package:stopfires/providers/geolocation_provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 class FiresMapPage extends ConsumerStatefulWidget {
   const FiresMapPage({super.key});
@@ -28,13 +30,25 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   bool _layersAdded = false;
   bool _mapReady = false;
 
+  // Location tracking
+  StreamSubscription<Position?>? _locationSubscription;
+  Position? _currentPosition;
+  m.Circle? _currentLocationCircle;
+
   Timer? _debounce;
   m.CameraPosition? _lastCameraPosition;
   static const Duration _debounceDelay = Duration(milliseconds: 800);
 
   @override
+  void initState() {
+    super.initState();
+    _setupLocationListener();
+  }
+
+  @override
   void dispose() {
     _debounce?.cancel();
+    _locationSubscription?.cancel();
     super.dispose();
   }
 
@@ -76,6 +90,11 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
               _logger.i('Map style loaded successfully');
               _mapReady = true;
               _refreshFromVisibleRegion();
+
+              // Add current location marker if available
+              if (_currentPosition != null) {
+                _updateCurrentLocationMarker(_currentPosition!);
+              }
             },
             onCameraIdle: () {
               final currentPosition = _c.cameraPosition;
@@ -647,5 +666,62 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
         ),
       ),
     );
+  }
+
+  // --- Location tracking methods ---
+
+  void _setupLocationListener() {
+    _locationSubscription = ref
+        .read(locationFirestoreProvider.stream)
+        .listen(
+          (position) {
+            if (position != null && mounted) {
+              setState(() {
+                _currentPosition = position;
+              });
+
+              // Update the current location marker if map is ready
+              if (_mapReady) {
+                _updateCurrentLocationMarker(position);
+              }
+            }
+          },
+          onError: (error) {
+            _logger.e('Location stream error: $error');
+          },
+        );
+  }
+
+  Future<void> _updateCurrentLocationMarker(Position position) async {
+    if (!_mapReady) return;
+
+    try {
+      final ll = m.LatLng(position.latitude, position.longitude);
+
+      if (_currentLocationCircle == null) {
+        // Create a circle annotation as the "current location" marker
+        _currentLocationCircle = await _c.addCircle(
+          m.CircleOptions(
+            geometry: ll,
+            circleRadius: 8.0,
+            circleColor: "#4285F4", // blue dot
+            circleStrokeColor: "#FFFFFF", // white ring
+            circleStrokeWidth: 2.0,
+            circleOpacity: 1.0,
+          ),
+        );
+        _logger.d(
+          'Current location circle created at ${position.latitude}, ${position.longitude}',
+        );
+      } else {
+        // Move the existing annotation
+        await _c.updateCircle(
+          _currentLocationCircle!,
+          m.CircleOptions(geometry: ll),
+        );
+      }
+    } catch (e, st) {
+      _logger.e('Failed to update current location marker: $e\n$st');
+    }
   }
 }
