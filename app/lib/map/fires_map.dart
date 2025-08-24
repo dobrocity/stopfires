@@ -52,7 +52,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   @override
   void dispose() {
     _debounce?.cancel();
-    _clearAllLayers();
     super.dispose();
   }
 
@@ -270,21 +269,6 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     // Remove previous fire layers if they exist
     try {
       if (_layersAdded) {
-        // Remove layers first, then sources
-        final layersToRemove = ['fires-heat', 'fires-point', 'fires-clusters'];
-        final sourcesToRemove = ['fires', 'clusters'];
-
-        for (final layerId in layersToRemove) {
-          await _safeRemoveLayer(layerId);
-        }
-
-        for (final sourceId in sourcesToRemove) {
-          await _safeRemoveSource(sourceId);
-        }
-
-        // Small delay to ensure sources are fully removed
-        await Future.delayed(const Duration(milliseconds: 100));
-
         _layersAdded = false;
       }
     } catch (e) {
@@ -340,152 +324,290 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     final geojson = {'type': 'FeatureCollection', 'features': features};
 
     try {
-      // Safely remove source if it exists
-      await _safeRemoveSource('fires');
-
-      // Small delay to ensure source is fully removed
-      await Future.delayed(const Duration(milliseconds: 50));
-
       // Add GeoJSON source - pass the object directly, not the JSON string
-      await _c.addSource('fires', m.GeojsonSourceProperties(data: geojson));
+      final sourceIds = await _c.getSourceIds();
+      if (sourceIds.contains('fires')) {
+        await _c.setGeoJsonSource('fires', geojson); // update data in place
+      } else {
+        await _c.addSource('fires', m.GeojsonSourceProperties(data: geojson));
+      }
 
       // Add large circle layer for heatmap effect (low zoom levels)
-      await _c.addLayer(
-        'fires',
-        'fires-heat',
-        m.CircleLayerProperties(
-          circleRadius: [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            0,
-            [
+      final layerIds = await _c.getLayerIds();
+      if (layerIds.contains('fires-heat')) {
+        await _c.setLayerProperties(
+          'fires-heat',
+          m.CircleLayerProperties(
+            circleRadius: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                4,
+                1,
+                10,
+              ],
+              9,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                8,
+                1,
+                20,
+              ],
+            ],
+            circleColor: [
               'interpolate',
               ['linear'],
               ['get', 'weight'],
               0,
-              4,
+              'rgba(255,200,200,0.3)',
+              0.2,
+              'rgba(255,150,150,0.4)',
+              0.4,
+              'rgba(255,100,100,0.5)',
+              0.6,
+              'rgba(255,50,50,0.6)',
+              0.8,
+              'rgba(220,20,20,0.7)',
               1,
-              10,
+              'rgba(178,24,43,0.8)',
             ],
-            9,
-            [
+            circleStrokeColor: [
               'interpolate',
               ['linear'],
               ['get', 'weight'],
               0,
-              8,
+              'rgba(255,200,200,0.8)',
+              0.2,
+              'rgba(255,150,150,0.8)',
+              0.4,
+              'rgba(255,100,100,0.8)',
+              0.6,
+              'rgba(255,50,50,0.8)',
+              0.8,
+              'rgba(220,20,20,0.8)',
               1,
-              20,
+              'rgba(178,24,43,0.8)',
             ],
-          ],
-          circleColor: [
-            'interpolate',
-            ['linear'],
-            ['get', 'weight'],
-            0,
-            'rgba(255,200,200,0.3)',
-            0.2,
-            'rgba(255,150,150,0.4)',
-            0.4,
-            'rgba(255,100,100,0.5)',
-            0.6,
-            'rgba(255,50,50,0.6)',
-            0.8,
-            'rgba(220,20,20,0.7)',
-            1,
-            'rgba(178,24,43,0.8)',
-          ],
-          circleStrokeColor: [
-            'interpolate',
-            ['linear'],
-            ['get', 'weight'],
-            0,
-            'rgba(255,200,200,0.8)',
-            0.2,
-            'rgba(255,150,150,0.8)',
-            0.4,
-            'rgba(255,100,100,0.8)',
-            0.6,
-            'rgba(255,50,50,0.8)',
-            0.8,
-            'rgba(220,20,20,0.8)',
-            1,
-            'rgba(178,24,43,0.8)',
-          ],
-          circleStrokeWidth: 1,
-          circleOpacity: [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            0,
-            1,
-            9,
-            0.3,
-          ],
-        ),
-      );
+            circleStrokeWidth: 1,
+            circleOpacity: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0,
+              1,
+              9,
+              0.3,
+            ],
+          ),
+        );
+      } else {
+        await _c.addLayer(
+          'fires',
+          'fires-heat',
+          m.CircleLayerProperties(
+            circleRadius: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                4,
+                1,
+                10,
+              ],
+              9,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                8,
+                1,
+                20,
+              ],
+            ],
+            circleColor: [
+              'interpolate',
+              ['linear'],
+              ['get', 'weight'],
+              0,
+              'rgba(255,200,200,0.3)',
+              0.2,
+              'rgba(255,150,150,0.4)',
+              0.4,
+              'rgba(255,100,100,0.5)',
+              0.6,
+              'rgba(255,50,50,0.6)',
+              0.8,
+              'rgba(220,20,20,0.7)',
+              1,
+              'rgba(178,24,43,0.8)',
+            ],
+            circleStrokeColor: [
+              'interpolate',
+              ['linear'],
+              ['get', 'weight'],
+              0,
+              'rgba(255,200,200,0.8)',
+              0.2,
+              'rgba(255,150,150,0.8)',
+              0.4,
+              'rgba(255,100,100,0.8)',
+              0.6,
+              'rgba(255,50,50,0.8)',
+              0.8,
+              'rgba(220,20,20,0.8)',
+              1,
+              'rgba(178,24,43,0.8)',
+            ],
+            circleStrokeWidth: 1,
+            circleOpacity: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0,
+              1,
+              9,
+              0.3,
+            ],
+          ),
+        );
+      }
 
       // Add smaller circle layer for higher zoom levels (point representation)
-      await _c.addLayer(
-        'fires',
-        'fires-point',
-        m.CircleLayerProperties(
-          circleRadius: [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            12,
-            [
+      if (layerIds.contains('fires-point')) {
+        await _c.setLayerProperties(
+          'fires-point',
+          m.CircleLayerProperties(
+            circleRadius: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              12,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                2,
+                1,
+                5,
+              ],
+              16,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                4,
+                1,
+                10,
+              ],
+            ],
+            circleColor: [
               'interpolate',
               ['linear'],
               ['get', 'weight'],
               0,
-              2,
+              'rgba(255,200,200,0.9)',
+              0.2,
+              'rgba(255,150,150,0.9)',
+              0.4,
+              'rgba(255,100,100,0.9)',
+              0.6,
+              'rgba(255,50,50,0.9)',
+              0.8,
+              'rgba(220,20,20,0.9)',
               1,
-              5,
+              'rgba(178,24,43,0.9)',
             ],
-            16,
-            [
+            circleStrokeColor: 'white',
+            circleStrokeWidth: 2,
+            circleOpacity: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              12,
+              0,
+              13,
+              1,
+            ],
+          ),
+        );
+      } else {
+        await _c.addLayer(
+          'fires',
+          'fires-point',
+          m.CircleLayerProperties(
+            circleRadius: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              12,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                2,
+                1,
+                5,
+              ],
+              16,
+              [
+                'interpolate',
+                ['linear'],
+                ['get', 'weight'],
+                0,
+                4,
+                1,
+                10,
+              ],
+            ],
+            circleColor: [
               'interpolate',
               ['linear'],
               ['get', 'weight'],
               0,
-              4,
+              'rgba(255,200,200,0.9)',
+              0.2,
+              'rgba(255,150,150,0.9)',
+              0.4,
+              'rgba(255,100,100,0.9)',
+              0.6,
+              'rgba(255,50,50,0.9)',
+              0.8,
+              'rgba(220,20,20,0.9)',
               1,
-              10,
+              'rgba(178,24,43,0.9)',
             ],
-          ],
-          circleColor: [
-            'interpolate',
-            ['linear'],
-            ['get', 'weight'],
-            0,
-            'rgba(255,200,200,0.9)',
-            0.2,
-            'rgba(255,150,150,0.9)',
-            0.4,
-            'rgba(255,100,100,0.9)',
-            0.6,
-            'rgba(255,50,50,0.9)',
-            0.8,
-            'rgba(220,20,20,0.9)',
-            1,
-            'rgba(178,24,43,0.9)',
-          ],
-          circleStrokeColor: 'white',
-          circleStrokeWidth: 2,
-          circleOpacity: [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            12,
-            0,
-            13,
-            1,
-          ],
-        ),
-      );
+            circleStrokeColor: 'white',
+            circleStrokeWidth: 2,
+            circleOpacity: [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              12,
+              0,
+              13,
+              1,
+            ],
+          ),
+        );
+      }
 
       // Add cluster layers if clusters exist
       if (_clusters.isNotEmpty) {
@@ -1082,72 +1204,39 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
           'features': clusterFeatures,
         };
 
-        // Safely remove cluster source if it exists
-        await _safeRemoveSource('clusters');
-
-        // Small delay to ensure source is fully removed
-        await Future.delayed(const Duration(milliseconds: 50));
-
         // Add cluster source
-        await _c.addSource(
-          'clusters',
-          m.GeojsonSourceProperties(data: clusterGeojson),
-        );
+        final sourceIds = await _c.getSourceIds();
+        if (sourceIds.contains('clusters')) {
+          await _c.setGeoJsonSource(
+            'clusters',
+            clusterGeojson,
+          ); // update data in place
+        } else {
+          await _c.addSource(
+            'clusters',
+            m.GeojsonSourceProperties(data: clusterGeojson),
+          );
+        }
 
         // Add cluster fill layer
-        await _c.addLayer(
-          'clusters',
-          'fires-clusters',
-          m.FillLayerProperties(fillColor: ['get', 'color']),
-        );
+        final layerIds = await _c.getLayerIds();
+        if (layerIds.contains('fires-clusters')) {
+          await _c.setLayerProperties(
+            'fires-clusters',
+            m.FillLayerProperties(fillColor: ['get', 'color']),
+          );
+        } else {
+          await _c.addLayer(
+            'clusters',
+            'fires-clusters',
+            m.FillLayerProperties(fillColor: ['get', 'color']),
+          );
+        }
 
         _logger.i('Cluster layers added successfully');
       }
     } catch (e) {
       _logger.e('Failed to add cluster layers: $e');
-    }
-  }
-
-  /// Safely remove a source if it exists
-  Future<void> _safeRemoveSource(String sourceId) async {
-    try {
-      await _c.removeSource(sourceId);
-      _logger.d('Successfully removed source: $sourceId');
-    } catch (e) {
-      // Source doesn't exist, which is fine
-      _logger.d('Source $sourceId does not exist: $e');
-    }
-  }
-
-  /// Safely remove a layer if it exists
-  Future<void> _safeRemoveLayer(String layerId) async {
-    try {
-      await _c.removeLayer(layerId);
-      _logger.d('Successfully removed layer: $layerId');
-    } catch (e) {
-      // Layer doesn't exist, which is fine
-      _logger.d('Layer $layerId does not exist: $e');
-    }
-  }
-
-  /// Clear all layers and sources safely
-  Future<void> _clearAllLayers() async {
-    try {
-      final layersToRemove = ['fires-heat', 'fires-point', 'fires-clusters'];
-      final sourcesToRemove = ['fires', 'clusters'];
-
-      for (final layerId in layersToRemove) {
-        await _safeRemoveLayer(layerId);
-      }
-
-      for (final sourceId in sourcesToRemove) {
-        await _safeRemoveSource(sourceId);
-      }
-
-      _layersAdded = false;
-      _logger.i('All layers and sources cleared');
-    } catch (e) {
-      _logger.e('Error clearing layers: $e');
     }
   }
 
