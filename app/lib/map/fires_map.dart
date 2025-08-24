@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -535,15 +534,15 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     double lon2,
   ) {
     const double earthRadius = 6371000; // Earth's radius in meters
-    final double dLat = (lat2 - lat1) * pi / 180;
-    final double dLon = (lon2 - lon1) * pi / 180;
+    final double dLat = (lat2 - lat1) * math.pi / 180;
+    final double dLon = (lon2 - lon1) * math.pi / 180;
     final double a =
-        sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) *
-            cos(lat2 * pi / 180) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1 * math.pi / 180) *
+            math.cos(lat2 * math.pi / 180) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     return earthRadius * c;
   }
 
@@ -723,7 +722,13 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
   // --- Create Minkowski sum for proper buffer polygon ---
   List<m.LatLng> _createMinkowskiSum(List<m.LatLng> hull, double radius) {
-    if (hull.length < 3) return [];
+    if (hull.length < 3) {
+      if (hull.length == 2) {
+        // For 2 points, create a "pill" shape (line segment with rounded ends)
+        return _createPillShape(hull[0], hull[1], radius);
+      }
+      return [];
+    }
 
     final List<m.LatLng> bufferedPoints = [];
 
@@ -747,11 +752,11 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       final normal2 = m.LatLng(-edgeVector2.longitude, edgeVector2.latitude);
 
       // Normalize normals
-      final len1 = sqrt(
+      final len1 = math.sqrt(
         normal1.latitude * normal1.latitude +
             normal1.longitude * normal1.longitude,
       );
-      final len2 = sqrt(
+      final len2 = math.sqrt(
         normal2.latitude * normal2.latitude +
             normal2.longitude * normal2.longitude,
       );
@@ -772,7 +777,7 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
           (norm1.longitude + norm2.longitude) / 2,
         );
 
-        final avgLen = sqrt(
+        final avgLen = math.sqrt(
           avgNormal.latitude * avgNormal.latitude +
               avgNormal.longitude * avgNormal.longitude,
         );
@@ -795,19 +800,22 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
 
       // Add arc points at corners for rounded buffer
       final numArcPoints = 8;
-      final startAngle = atan2(-edgeVector1.longitude, edgeVector1.latitude);
-      final endAngle = atan2(-edgeVector2.longitude, edgeVector2.latitude);
+      final startAngle = math.atan2(
+        -edgeVector1.longitude,
+        edgeVector1.latitude,
+      );
+      final endAngle = math.atan2(-edgeVector2.longitude, edgeVector2.latitude);
 
       double angleDiff = endAngle - startAngle;
-      if (angleDiff < 0) angleDiff += 2 * pi;
-      if (angleDiff > pi) angleDiff -= 2 * pi;
+      if (angleDiff < 0) angleDiff += 2 * math.pi;
+      if (angleDiff > math.pi) angleDiff -= 2 * math.pi;
 
       for (int j = 1; j <= numArcPoints; j++) {
         final angle = startAngle + (angleDiff * j) / (numArcPoints + 1);
         bufferedPoints.add(
           m.LatLng(
-            current.latitude + radius * cos(angle),
-            current.longitude + radius * sin(angle),
+            current.latitude + radius * math.cos(angle),
+            current.longitude + radius * math.sin(angle),
           ),
         );
       }
@@ -818,7 +826,11 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
   }
 
   List<m.LatLng> _createConvexHull(List<m.LatLng> pts, {bool close = false}) {
-    if (pts.length < 3) return List<m.LatLng>.from(pts);
+    if (pts.length < 3) {
+      // For 2 points, create a simple line segment
+      // For 1 point, return as is
+      return List<m.LatLng>.from(pts);
+    }
 
     // 1) pivot: lowest latitude, then leftmost longitude
     int p0 = 0;
@@ -875,10 +887,86 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     return abx * acy - aby * acx;
   }
 
-  // --- Calculate cross product for convex hull ---
-  double _crossProduct(m.LatLng a, m.LatLng b, m.LatLng c) {
-    return (b.longitude - a.longitude) * (c.latitude - a.latitude) -
-        (b.latitude - a.latitude) * (c.longitude - a.longitude);
+  // --- Create pill shape for 2-point line segments ---
+  List<m.LatLng> _createPillShape(m.LatLng p1, m.LatLng p2, double radius) {
+    // Calculate the vector from p1 to p2
+    final dx = p2.longitude - p1.longitude;
+    final dy = p2.latitude - p1.latitude;
+
+    // Calculate the length of the line segment
+    final length = math.sqrt(dx * dx + dy * dy);
+
+    if (length == 0) {
+      // If points are identical, create a circle
+      return _createCircle(p1.latitude, p1.longitude, radius);
+    }
+
+    // Normalize the direction vector
+    final unitX = dx / length;
+    final unitY = dy / length;
+
+    // Perpendicular vector (normal) pointing outward
+    final perpX = -unitY;
+    final perpY = unitX;
+
+    // Create the pill shape with rounded ends
+    final List<m.LatLng> points = [];
+    const int segments = 16; // Reduced segments for smoother appearance
+
+    // Start from the right side of p1 and go clockwise around the shape
+    // Right side edge from p1 to p2
+    points.add(
+      m.LatLng(p1.latitude + perpY * radius, p1.longitude + perpX * radius),
+    );
+    points.add(
+      m.LatLng(p2.latitude + perpY * radius, p2.longitude + perpX * radius),
+    );
+
+    // Right rounded end at p2 (semicircle)
+    for (int i = 1; i <= segments; i++) {
+      final angle = (math.pi * i) / segments;
+      final cosAngle = math.cos(angle);
+      final sinAngle = math.sin(angle);
+
+      // Rotate the perpendicular vector from right to left
+      final rotatedX = perpX * cosAngle + perpY * sinAngle;
+      final rotatedY = -perpX * sinAngle + perpY * cosAngle;
+
+      points.add(
+        m.LatLng(
+          p2.latitude + rotatedY * radius,
+          p2.longitude + rotatedX * radius,
+        ),
+      );
+    }
+
+    // Left side edge from p2 to p1
+    points.add(
+      m.LatLng(p2.latitude - perpY * radius, p2.longitude - perpX * radius),
+    );
+    points.add(
+      m.LatLng(p1.latitude - perpY * radius, p1.longitude - perpX * radius),
+    );
+
+    // Left rounded end at p1 (semicircle) to close the shape
+    for (int i = 1; i <= segments; i++) {
+      final angle = (math.pi * i) / segments;
+      final cosAngle = math.cos(angle);
+      final sinAngle = math.sin(angle);
+
+      // Rotate the perpendicular vector from left to right
+      final rotatedX = perpX * cosAngle - perpY * sinAngle;
+      final rotatedY = perpX * sinAngle + perpY * cosAngle;
+
+      points.add(
+        m.LatLng(
+          p1.latitude + rotatedY * radius,
+          p1.longitude + rotatedX * radius,
+        ),
+      );
+    }
+
+    return points;
   }
 
   // --- Create a circle with smooth edges ---
@@ -891,13 +979,52 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
     const int segments = 128; // Increased segments for very smooth circles
 
     for (int i = 0; i <= segments; i++) {
-      final double angle = (2 * pi * i) / segments;
-      final double lat = centerLat + radius * cos(angle);
-      final double lon = centerLon + radius * sin(angle);
+      final double angle = (2 * math.pi * i) / segments;
+      final double lat = centerLat + radius * math.cos(angle);
+      final double lon = centerLon + radius * math.sin(angle);
       points.add(m.LatLng(lat, lon));
     }
 
     return points;
+  }
+
+  // Shoelace signed area: >0 => CCW, <0 => CW
+  double _signedArea(List<List<double>> ring) {
+    if (ring.length < 3) return 0;
+    double s = 0;
+    for (int i = 0; i < ring.length; i++) {
+      final j = (i + 1) % ring.length;
+      s +=
+          ring[i][0] * ring[j][1] -
+          ring[j][0] * ring[i][1]; // x_i*y_{i+1} - x_{i+1}*y_i
+    }
+    return 0.5 * s;
+  }
+
+  List<List<double>> _closeRing(List<List<double>> coords) {
+    if (coords.isEmpty) return coords;
+    final first = coords.first, last = coords.last;
+    if ((first[0] - last[0]).abs() > 1e-12 ||
+        (first[1] - last[1]).abs() > 1e-12) {
+      return [
+        ...coords,
+        [first[0], first[1]],
+      ];
+    }
+    return coords;
+  }
+
+  /// Ensure orientation: CCW for exterior, CW for holes.
+  List<List<double>> _ensureOrientation(
+    List<List<double>> ring, {
+    required bool clockwise,
+  }) {
+    var closed = _closeRing(ring);
+    final area = _signedArea(closed); // CCW => area > 0
+    final isCW = area < 0;
+    if (clockwise && !isCW) closed = closed.reversed.toList();
+    if (!clockwise && isCW) closed = closed.reversed.toList();
+    return closed;
   }
 
   /// Add cluster layers to the map
@@ -915,26 +1042,38 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       final clusterFeatures = <Map<String, dynamic>>[];
 
       for (final cluster in _clusters) {
-        if (cluster.hull.isNotEmpty) {
-          // Convert hull points to GeoJSON format [longitude, latitude]
-          final coordinates = cluster.hull
-              .map((point) => [point.longitude, point.latitude])
-              .toList();
+        if (cluster.hull.isEmpty) continue;
 
-          clusterFeatures.add({
-            'type': 'Feature',
-            'geometry': {
-              'type': 'Polygon',
-              'coordinates': [coordinates], // Polygon requires array of arrays
-            },
-            'properties': {
-              'clusterId': _clusters.indexOf(cluster),
-              'fireCount': cluster.points.length,
-              'color':
-                  'rgba(${cluster.color.red}, ${cluster.color.green}, ${cluster.color.blue}, ${cluster.opacity})',
-            },
-          });
-        }
+        // 0) lon/lat pairs
+        final raw = cluster.hull.map((p) => [p.longitude, p.latitude]).toList();
+
+        // 1–2) sanitize + simplify
+        var ring = _removeCollinear(_sanitizeRing(raw));
+
+        if (ring.length < 3) continue;
+
+        // 3) force a simple shape – convex hull (prevents self-intersections)
+        ring = _convexHullLonLat(ring);
+        if (ring.length < 3) continue;
+
+        // 4) CCW (RFC 7946) + close
+        ring = _ensureOrientation(ring, clockwise: false);
+        ring = _closeRing(ring);
+        if (ring.length < 4) continue;
+
+        clusterFeatures.add({
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Polygon',
+            'coordinates': [ring],
+          },
+          'properties': {
+            'clusterId': _clusters.indexOf(cluster),
+            'fireCount': cluster.points.length,
+            'color':
+                'rgba(${cluster.color.red}, ${cluster.color.green}, ${cluster.color.blue}, ${cluster.opacity})',
+          },
+        });
       }
 
       if (clusterFeatures.isNotEmpty) {
@@ -1074,4 +1213,115 @@ class _FiresMapPageState extends ConsumerState<FiresMapPage> {
       ),
     );
   }
+}
+
+const _EPS = 1e-12;
+
+bool _same(List<double> a, List<double> b, [double eps = _EPS]) =>
+    (a[0] - b[0]).abs() < eps && (a[1] - b[1]).abs() < eps;
+
+// 1) de-dup + cut if first re-appears in the middle
+List<List<double>> _sanitizeRing(List<List<double>> raw) {
+  if (raw.isEmpty) return raw;
+
+  final out = <List<double>>[];
+  for (final p in raw) {
+    if (out.isEmpty || !_same(out.last, p)) out.add(p);
+  }
+  final first = out.first;
+  final dupIdx = out.indexWhere((p) => _same(p, first), 1);
+  if (dupIdx != -1 && dupIdx < out.length - 1) {
+    out.removeRange(dupIdx, out.length);
+  }
+  return out;
+}
+
+// 2) remove nearly-collinear vertices (keeps shape but avoids spikes)
+List<List<double>> _removeCollinear(
+  List<List<double>> ring, {
+  double eps = 1e-12,
+}) {
+  if (ring.length < 3) return ring;
+  final cleaned = <List<double>>[];
+  for (int i = 0; i < ring.length; i++) {
+    final a = ring[(i - 1 + ring.length) % ring.length];
+    final b = ring[i];
+    final c = ring[(i + 1) % ring.length];
+    final abx = b[0] - a[0], aby = b[1] - a[1];
+    final bcx = c[0] - b[0], bcy = c[1] - b[1];
+    final cross = abx * bcy - aby * bcx;
+    if (cross.abs() > eps) cleaned.add(b); // keep only if there is a real turn
+  }
+  return cleaned;
+}
+
+// Shoelace signed area: >0 CCW, <0 CW
+double _signedArea(List<List<double>> ring) {
+  double s = 0;
+  for (int i = 0; i < ring.length; i++) {
+    final j = (i + 1) % ring.length;
+    s += ring[i][0] * ring[j][1] - ring[j][0] * ring[i][1];
+  }
+  return 0.5 * s;
+}
+
+List<List<double>> _ensureOrientation(
+  List<List<double>> ring, {
+  required bool clockwise,
+}) {
+  if (ring.length < 3) return ring;
+  final area = _signedArea(ring);
+  final isCW = area < 0;
+  if (clockwise && !isCW) return ring.reversed.toList();
+  if (!clockwise && isCW) return ring.reversed.toList();
+  return ring;
+}
+
+List<List<double>> _closeRing(List<List<double>> ring) {
+  if (ring.isEmpty) return ring;
+  return _same(ring.first, ring.last)
+      ? ring
+      : [
+          ...ring,
+          [ring.first[0], ring.first[1]],
+        ];
+}
+
+// 3) convex hull in lon/lat (returns open ring)
+List<List<double>> _convexHullLonLat(List<List<double>> pts) {
+  if (pts.length <= 2) return pts;
+  // pivot: lowest lat, then lowest lon
+  int p0 = 0;
+  for (int i = 1; i < pts.length; i++) {
+    if (pts[i][1] < pts[p0][1] ||
+        (pts[i][1] == pts[p0][1] && pts[i][0] < pts[p0][0]))
+      p0 = i;
+  }
+  final pivot = pts[p0];
+  final others = <List<double>>[];
+  for (int i = 0; i < pts.length; i++) if (i != p0) others.add(pts[i]);
+
+  double angle(List<double> a) => math.atan2(a[1] - pivot[1], a[0] - pivot[0]);
+  double dist2(List<double> a) {
+    final dx = a[0] - pivot[0], dy = a[1] - pivot[1];
+    return dx * dx + dy * dy;
+  }
+
+  others.sort((a, b) {
+    final da = angle(a), db = angle(b);
+    if (da != db) return da.compareTo(db);
+    return dist2(a).compareTo(dist2(b));
+  });
+
+  double cross(List<double> a, List<double> b, List<double> c) =>
+      (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+
+  final hull = <List<double>>[pivot];
+  for (final p in others) {
+    while (hull.length > 1 && cross(hull[hull.length - 2], hull.last, p) <= 0) {
+      hull.removeLast();
+    }
+    hull.add(p);
+  }
+  return hull; // open; caller orients+closes
 }
